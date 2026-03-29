@@ -1,0 +1,46 @@
+name: Weekly London Job Digest
+
+on:
+  # Runs every Monday at 8:00 AM London time (UTC+1 BST / UTC+0 GMT)
+  # Using 8:00 UTC covers GMT winter; for BST summer adjust to 7:00 UTC
+  schedule:
+    - cron: '0 8 * * 1'
+
+  # Also allows a manual trigger from the GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  send-job-digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run job bot
+        env:
+          ADZUNA_APP_ID:  ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          GMAIL_USER:     ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASS: ${{ secrets.GMAIL_APP_PASS }}
+          FROM_EMAIL:     ${{ secrets.FROM_EMAIL }}
+          TO_EMAIL:       ${{ secrets.TO_EMAIL }}
+        run: python job_bot.py
+
+      - name: Upload debug HTML on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-digest
+          path: last_digest.html
+          if-no-files-found: ignore
