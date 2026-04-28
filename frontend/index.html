@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shreya's Job Digest</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f4f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      padding: 40px 24px 32px;
+      text-align: center;
+      color: #fff;
+    }
+    .header-icon { font-size: 40px; margin-bottom: 10px; }
+    .header h1  { font-size: clamp(22px, 4vw, 30px); font-weight: 700; letter-spacing: -0.5px; }
+    .header .sub {
+      margin-top: 8px; font-size: 15px;
+      color: rgba(255,255,255,0.82);
+    }
+    .header .meta { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.6); }
+
+    /* ── Controls bar ── */
+    .controls {
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .controls label { font-size: 13px; color: #555; font-weight: 600; }
+    .controls select, .controls input[type=range] { cursor: pointer; }
+    .controls select {
+      padding: 6px 10px; border: 1px solid #d1d5db;
+      border-radius: 6px; font-size: 13px; background: #f9fafb;
+    }
+    .filter-group { display: flex; align-items: center; gap: 8px; }
+    #scoreVal { font-weight: 700; color: #4f46e5; min-width: 28px; }
+    .count-badge {
+      margin-left: auto; background: #ede9fe; color: #4f46e5;
+      padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
+    }
+
+    /* ── Grid ── */
+    .grid {
+      max-width: 900px;
+      margin: 28px auto;
+      padding: 0 16px 40px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── Job card ── */
+    .card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      border-left: 5px solid #4f46e5;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow .18s, transform .18s;
+    }
+    .card:hover { box-shadow: 0 6px 24px rgba(79,70,229,.12); transform: translateY(-2px); }
+
+    .card-top { padding: 18px 18px 10px; }
+
+    .card-meta {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .rank { font-size: 11px; font-weight: 700; color: #9ca3af; letter-spacing: 1px; }
+    .score-badge {
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.3px;
+    }
+    .score-high   { background: #16a34a; color: #fff; }
+    .score-mid    { background: #ca8a04; color: #fff; }
+    .score-low    { background: #dc2626; color: #fff; }
+
+    .source-badge {
+      background: #e8f4fd; color: #1a73e8;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+    }
+    .posted-date { font-size: 11px; color: #9ca3af; margin-left: auto; }
+
+    .card-title {
+      font-size: 16px; font-weight: 700; color: #1a1a2e;
+      text-decoration: none; line-height: 1.35;
+      display: block; margin-bottom: 4px;
+    }
+    .card-title:hover { color: #4f46e5; }
+
+    .company { font-size: 13px; font-weight: 600; color: #4f46e5; margin-bottom: 8px; }
+
+    .card-info {
+      display: flex; gap: 14px; font-size: 12px; color: #555;
+      flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .card-info span { display: flex; align-items: center; gap: 4px; }
+
+    .card-desc {
+      font-size: 12px; color: #555; line-height: 1.6;
+      padding: 0 18px 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .match-reason {
+      margin: 0 18px 12px;
+      background: #f0fdf4;
+      border-left: 3px solid #22c55e;
+      border-radius: 0 6px 6px 0;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #166534;
+      line-height: 1.5;
+    }
+    .match-reason strong { font-weight: 700; }
+
+    .card-footer {
+      margin-top: auto;
+      padding: 0 18px 18px;
+    }
+    .apply-btn {
+      display: inline-block;
+      background: #4f46e5;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .apply-btn:hover { background: #4338ca; }
+
+    /* ── Empty / Error states ── */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: #9ca3af;
+    }
+    .empty .emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+    .empty p { font-size: 15px; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #9ca3af;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    @media (max-width: 500px) {
+      .grid { grid-template-columns: 1fr; }
+      .controls { flex-direction: column; align-items: flex-start; }
+      .count-badge { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🔍</div>
+  <h1>Shreya's London Job Digest</h1>
+  <p class="sub" id="weekLabel">Loading…</p>
+  <p class="meta" id="metaLabel"></p>
+</div>
+
+<div class="controls">
+  <div class="filter-group">
+    <label for="sortSelect">Sort by</label>
+    <select id="sortSelect">
+      <option value="score">Score (highest first)</option>
+      <option value="date">Date posted (newest first)</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label for="minScore">Min score: <span id="scoreVal">1</span></label>
+    <input type="range" id="minScore" min="1" max="10" value="1" step="1" style="width:100px;" />
+  </div>
+  <span class="count-badge" id="countBadge">— roles</span>
+</div>
+
+<div class="grid" id="jobGrid">
+  <div class="empty"><span class="emoji">⏳</span><p>Loading jobs…</p></div>
+</div>
+
+<div class="footer" id="footer"></div>
+
+<script>
+  let allJobs = [];
+
+  function scoreClass(s) {
+    if (s >= 8) return 'score-high';
+    if (s >= 6) return 'score-mid';
+    return 'score-low';
+  }
+
+  function formatDate(str) {
+    if (!str) return '';
+    const d = new Date(str);
+    if (isNaN(d)) return str.slice(0, 10);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function stripHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
+
+  function truncate(text, n) {
+    const t = stripHtml(text || '');
+    return t.length > n ? t.slice(0, n).trimEnd() + '…' : t;
+  }
+
+  function renderCard(job) {
+    const salary = job.salary && job.salary !== 'Not specified'
+      ? `<span>💰 ${job.salary}</span>`
+      : `<span>💼 Salary not listed</span>`;
+
+    const matchHtml = job.match_reason
+      ? `<div class="match-reason">✨ <strong>Why it matches:</strong> ${job.match_reason}</div>`
+      : '';
+
+    const desc = truncate(job.description, 200);
+    const posted = formatDate(job.date_posted);
+
+    return `
+      <div class="card" data-score="${job.score}" data-date="${job.date_posted || ''}">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="rank">#${job.rank}</span>
+            <span class="score-badge ${scoreClass(job.score)}">Score: ${job.score}/10</span>
+            <span class="source-badge">${job.source}</span>
+            ${posted ? `<span class="posted-date">${posted}</span>` : ''}
+          </div>
+          <a class="card-title" href="${job.url}" target="_blank" rel="noopener">${job.title}</a>
+          <div class="company">🏢 ${job.company}</div>
+          <div class="card-info">
+            <span>📍 ${job.location}</span>
+            ${salary}
+          </div>
+        </div>
+        ${desc ? `<p class="card-desc">${desc}</p>` : ''}
+        ${matchHtml}
+        <div class="card-footer">
+          <a class="apply-btn" href="${job.url}" target="_blank" rel="noopener">View &amp; Apply →</a>
+        </div>
+      </div>`;
+  }
+
+  function render() {
+    const minScore  = parseInt(document.getElementById('minScore').value, 10);
+    const sortBy    = document.getElementById('sortSelect').value;
+
+    let jobs = allJobs.filter(j => j.score >= minScore);
+
+    if (sortBy === 'date') {
+      jobs = jobs.sort((a, b) => (b.date_posted || '').localeCompare(a.date_posted || ''));
+    } else {
+      jobs = jobs.sort((a, b) => b.score - a.score);
+    }
+
+    const grid = document.getElementById('jobGrid');
+    document.getElementById('countBadge').textContent = `${jobs.length} role${jobs.length !== 1 ? 's' : ''}`;
+
+    if (!jobs.length) {
+      grid.innerHTML = `<div class="empty"><span class="emoji">🔎</span><p>No roles match the current filter.</p></div>`;
+      return;
+    }
+
+    grid.innerHTML = jobs.map(renderCard).join('');
+  }
+
+  async function load() {
+    try {
+      const res  = await fetch('./jobs.json');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      allJobs = data.jobs || [];
+
+      document.getElementById('weekLabel').textContent =
+        `Week of ${data.week_of} · ${allJobs.length} ${data.llm_powered ? 'AI-curated' : 'keyword-matched'} roles`;
+      document.getElementById('metaLabel').textContent =
+        `Last updated: ${new Date(data.generated_at).toLocaleString('en-GB')}`;
+      document.getElementById('footer').textContent =
+        `Source: LinkedIn via Apify · ${data.llm_powered ? 'Ranked by Claude AI (Haiku) · ' : ''}Generated every Monday morning`;
+
+      render();
+    } catch (err) {
+      document.getElementById('jobGrid').innerHTML =
+        `<div class="empty"><span class="emoji">⚠️</span>
+         <p>Could not load jobs.json — run the job bot first, or check the deploy.<br>
+         <small style="color:#dc2626">${err.message}</small></p></div>`;
+      document.getElementById('weekLabel').textContent = 'Shreya\'s London Job Digest';
+    }
+  }
+
+  document.getElementById('minScore').addEventListener('input', e => {
+    document.getElementById('scoreVal').textContent = e.target.value;
+    render();
+  });
+  document.getElementById('sortSelect').addEventListener('change', render);
+
+  load();
+</script>
+
+</body>
+</html>

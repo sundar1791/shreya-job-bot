@@ -1,18 +1,20 @@
 name: Weekly London Job Digest
 
 on:
-  # Runs every Monday at 8:00 AM London time (UTC+1 BST / UTC+0 GMT)
-  # Using 8:00 UTC covers GMT winter; for BST summer adjust to 7:00 UTC
+  # Every Monday at 8:00 AM UTC (covers GMT winter; adjust to 7:00 UTC for BST summer)
   schedule:
     - cron: '0 8 * * 1'
 
-  # Also allows a manual trigger from the GitHub Actions tab
+  # Manual trigger from the Actions tab
   workflow_dispatch:
+
+permissions:
+  contents: write   # needed to push to gh-pages branch
 
 jobs:
   send-job-digest:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20   # LinkedIn scraping can take longer than Adzuna
 
     steps:
       - name: Check out repository
@@ -29,8 +31,7 @@ jobs:
 
       - name: Run job bot
         env:
-          ADZUNA_APP_ID:     ${{ secrets.ADZUNA_APP_ID }}
-          ADZUNA_APP_KEY:    ${{ secrets.ADZUNA_APP_KEY }}
+          APIFY_TOKEN:       ${{ secrets.APIFY_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GMAIL_USER:        ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASS:    ${{ secrets.GMAIL_APP_PASS }}
@@ -38,10 +39,21 @@ jobs:
           TO_EMAIL:          ${{ secrets.TO_EMAIL }}
         run: python job_bot.py
 
+      - name: Copy frontend to output/
+        run: cp frontend/index.html output/index.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          keep_files: false
+          commit_message: "chore: update job digest ${{ github.run_id }}"
+
       - name: Upload debug HTML on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: debug-digest
-          path: last_digest.html
+          path: output/
           if-no-files-found: ignore
