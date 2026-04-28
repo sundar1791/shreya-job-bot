@@ -54,21 +54,24 @@ ADZUNA_BASE  = "https://api.adzuna.com/v1/api/jobs/gb/search"
 
 LLM_MODEL = "claude-haiku-4-5-20251001"
 
+# Queries tuned specifically to Shreya's background:
+# vendor/seller onboarding, catalogue ops, e-commerce/marketplace platform ops.
+# Deliberately excludes supply chain logistics, commercial/revenue strategy, retail store ops.
 ADZUNA_QUERIES = [
-    "operations manager",
-    "operations lead",
-    "e-commerce operations",
-    "vendor operations",
-    "merchandising operations",
-    "platform operations",
-    "business operations manager",
-    "data operations manager",
-    "marketplace operations",
-    "supply chain operations manager",
-    "commercial operations manager",
-    "retail operations manager",
+    "vendor operations manager",
+    "seller operations manager",
+    "e-commerce operations manager",
+    "marketplace operations manager",
+    "platform operations manager",
+    "vendor onboarding manager",
+    "catalogue operations manager",
     "data governance manager",
+    "e-commerce operations lead",
+    "vendor management operations",
+    "seller onboarding operations",
+    "merchandising operations manager",
     "partner operations manager",
+    "digital operations manager",
 ]
 
 
@@ -203,10 +206,31 @@ def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> li
             f"[{i}] {job['title']} | {job['company']} | {job['location']} | {salary}\n{desc}"
         )
 
-    prompt = f"""You are a specialist careers advisor helping a candidate find their next role.
+    prompt = f"""You are a specialist careers advisor. Screen these job listings against the candidate's profile.
 
 CANDIDATE PROFILE:
 {resume}
+
+SCREENING RULES — a job MUST be discarded (score 1–2) if it is primarily about:
+- Revenue strategy, financial strategy, or commercial strategy
+- M&A, corporate transformation, divestments, or strategic consulting
+- Supply chain logistics, demand planning, inventory forecasting, or procurement
+- Software/data engineering, machine learning, or DevOps
+- Recruitment, HR operations, or talent acquisition
+- Field sales, account management, or business development
+- Finance, accounting, or roles requiring CPA/CIMA qualifications
+- Graduate, junior, or entry-level positions
+
+A job scores 7–10 ONLY if it involves one or more of the candidate's actual strengths:
+- E-commerce / marketplace / platform operations management
+- Vendor or seller onboarding, activation, and lifecycle management
+- Product catalogue management, taxonomy governance, or data quality
+- Digital platform operations with Product & Engineering collaboration
+- Operations team leadership (people management) in a tech/retail/marketplace company
+
+IMPORTANT: Do not give high scores to generic "operations" titles that are really financial ops,
+revenue ops, M&A programme management, or logistics. The candidate is a specialist in
+e-commerce marketplace / vendor / catalogue operations — not a generalist ops consultant.
 
 Below are {len(jobs)} job listings. Select the top {top_n} best matches.
 
@@ -219,11 +243,11 @@ Return ONLY valid JSON — no markdown fences, no extra text:
 }}
 
 Rules:
-- Return exactly {top_n} selections (fewer only if strong matches are exhausted).
-- score is 1–10: 10 = perfect fit, 1 = very weak. Spread scores — avoid clustering everything at 8.
+- Return exactly {top_n} selections (or fewer if fewer than {top_n} pass the screening rules above).
+- score 1–10: 10 = direct match on e-commerce/vendor/catalogue ops, 1 = disqualified.
+- Spread scores across the range — do not cluster everything at 7–8.
 - Sort by score descending.
-- Exclude: pure software/engineering, graduate/junior, unrelated finance, field sales.
-- match_reason must reference the candidate's actual background.
+- match_reason must reference the candidate's specific background (vendor onboarding, catalogue ops, etc.).
 
 JOB LISTINGS:
 {chr(10).join(lines)}"""
@@ -263,21 +287,25 @@ JOB LISTINGS:
 # KEYWORD FALLBACK SCORING
 # ─────────────────────────────────────────────
 _POSITIVE = [
-    "operations", "e-commerce", "ecommerce", "retail", "vendor", "merchandising",
-    "platform", "data governance", "onboarding", "partner", "marketplace",
-    "catalogue", "catalog", "supply chain", "continuous improvement", "sla",
-    "stakeholder", "workflow", "process improvement", "agile", "cross-functional",
-    "migration", "data quality", "service operations", "team lead",
+    "e-commerce", "ecommerce", "marketplace", "vendor", "seller", "onboarding",
+    "catalogue", "catalog", "merchandising", "platform operations", "data governance",
+    "data quality", "partner", "sla", "workflow", "process improvement",
+    "continuous improvement", "agile", "cross-functional", "product and engineering",
+    "migration", "service operations", "team lead", "digital platform",
 ]
 _NEGATIVE = [
     "software engineer", "developer", "coding", "devops", "data engineer",
     "machine learning", "ml engineer", "junior", "graduate", "intern",
     "accountant", "finance manager", "financial analyst", "field sales",
+    "revenue strategy", "commercial strategy", "demand planning", "inventory planning",
+    "supply chain", "procurement", "m&a", "mergers", "acquisitions", "transformation programme",
+    "strategic initiatives", "divestment", "recruitment consultant",
 ]
 _TITLE_BOOST = [
-    "operations manager", "operations lead", "e-commerce operations",
-    "vendor operations", "merchandising", "platform operations",
-    "business operations", "data operations",
+    "vendor operations", "seller operations", "e-commerce operations",
+    "platform operations", "marketplace operations", "catalogue operations",
+    "data governance", "onboarding manager", "vendor onboarding",
+    "operations lead", "operations manager",
 ]
 
 
