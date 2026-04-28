@@ -48,7 +48,7 @@ FROM_EMAIL     = os.getenv("FROM_EMAIL", GMAIL_USER)
 TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 
 TARGET_FETCH = 100
-OUTPUT_JOBS  = 20
+OUTPUT_JOBS  = 10
 OUTPUT_DIR   = os.path.join(os.path.dirname(__file__), "output")
 ADZUNA_BASE  = "https://api.adzuna.com/v1/api/jobs/gb/search"
 
@@ -58,20 +58,20 @@ LLM_MODEL = "claude-haiku-4-5-20251001"
 # vendor/seller onboarding, catalogue ops, e-commerce/marketplace platform ops.
 # Deliberately excludes supply chain logistics, commercial/revenue strategy, retail store ops.
 ADZUNA_QUERIES = [
-    "vendor operations manager",
-    "seller operations manager",
+    "vendor operations manager ecommerce",
+    "seller operations manager marketplace",
     "e-commerce operations manager",
     "marketplace operations manager",
-    "platform operations manager",
     "vendor onboarding manager",
     "catalogue operations manager",
-    "data governance manager",
-    "e-commerce operations lead",
-    "vendor management operations",
+    "platform operations manager ecommerce",
     "seller onboarding operations",
     "merchandising operations manager",
-    "partner operations manager",
-    "digital operations manager",
+    "data governance manager ecommerce",
+    "customer success manager ecommerce",
+    "customer success manager marketplace",
+    "partner operations manager ecommerce",
+    "vendor management ecommerce",
 ]
 
 
@@ -211,26 +211,33 @@ def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> li
 CANDIDATE PROFILE:
 {resume}
 
-SCREENING RULES — a job MUST be discarded (score 1–2) if it is primarily about:
-- Revenue strategy, financial strategy, or commercial strategy
+HARD DISQUALIFIERS — score 1–3 and exclude from selections if the role is primarily:
+- Freight forwarding, shipping, haulage, or physical logistics/transport operations
+- Supply chain logistics, demand planning, inventory forecasting, or warehouse management
+- Revenue strategy, financial strategy, commercial strategy, or pricing strategy
 - M&A, corporate transformation, divestments, or strategic consulting
-- Supply chain logistics, demand planning, inventory forecasting, or procurement
+- Technical Product Manager or Product Owner (software delivery, roadmap ownership, agile ceremonies)
 - Software/data engineering, machine learning, or DevOps
 - Recruitment, HR operations, or talent acquisition
 - Field sales, account management, or business development
 - Finance, accounting, or roles requiring CPA/CIMA qualifications
 - Graduate, junior, or entry-level positions
+- General Manager of a logistics or distribution company
 
-A job scores 7–10 ONLY if it involves one or more of the candidate's actual strengths:
-- E-commerce / marketplace / platform operations management
-- Vendor or seller onboarding, activation, and lifecycle management
-- Product catalogue management, taxonomy governance, or data quality
-- Digital platform operations with Product & Engineering collaboration
-- Operations team leadership (people management) in a tech/retail/marketplace company
+A job scores 7–10 ONLY if it directly involves one or more of:
+- E-commerce or marketplace operations management (managing platform workflows, seller/vendor lifecycle)
+- Vendor or seller onboarding, activation, enablement, and support
+- Product catalogue management, taxonomy governance, or data quality for an online retail platform
+- Customer success / account management for an e-commerce SaaS or marketplace platform (NOT field sales)
+- Digital platform operations collaborating with Product & Engineering
+- Operations team leadership (people management) in a tech/retail/marketplace/e-commerce company
 
-IMPORTANT: Do not give high scores to generic "operations" titles that are really financial ops,
-revenue ops, M&A programme management, or logistics. The candidate is a specialist in
-e-commerce marketplace / vendor / catalogue operations — not a generalist ops consultant.
+IMPORTANT: The candidate is a specialist in e-commerce marketplace / vendor / catalogue operations.
+Do NOT give a passing score (≥6) to:
+- Any role in freight, logistics, or physical goods movement, even if titled "Operations Manager"
+- Any "General Manager" role for a logistics, freight, or supply-chain company
+- Any "Product Owner" or "Technical Product Manager" role focused on software delivery
+- Generic "Operations Manager" roles in financial services, consulting, or professional services
 
 Below are {len(jobs)} job listings. Select the top {top_n} best matches.
 
@@ -243,11 +250,11 @@ Return ONLY valid JSON — no markdown fences, no extra text:
 }}
 
 Rules:
-- Return exactly {top_n} selections (or fewer if fewer than {top_n} pass the screening rules above).
-- score 1–10: 10 = direct match on e-commerce/vendor/catalogue ops, 1 = disqualified.
-- Spread scores across the range — do not cluster everything at 7–8.
+- Return AT MOST {top_n} selections. If fewer than {top_n} jobs genuinely score 6 or above, return only those — do NOT pad the list with weak matches scored below 6.
+- score 1–10: 10 = direct match on e-commerce/vendor/catalogue ops, 1 = hard disqualifier.
+- Spread scores — do not cluster everything at 7–8. A score of 9–10 should be rare and only for an almost perfect match.
 - Sort by score descending.
-- match_reason must reference the candidate's specific background (vendor onboarding, catalogue ops, etc.).
+- match_reason must reference the candidate's specific background (vendor onboarding, catalogue ops, Lowe's scale, etc.).
 
 JOB LISTINGS:
 {chr(10).join(lines)}"""
@@ -275,7 +282,8 @@ JOB LISTINGS:
             ranked.append(job)
 
         ranked.sort(key=lambda j: j["score"], reverse=True)
-        log.info(f"LLM: {len(ranked)} jobs, scores {[j['score'] for j in ranked]}")
+        ranked = [j for j in ranked if j["score"] >= 6]
+        log.info(f"LLM: {len(ranked)} jobs after score≥6 filter, scores {[j['score'] for j in ranked]}")
         return ranked
 
     except Exception as e:
@@ -300,6 +308,9 @@ _NEGATIVE = [
     "revenue strategy", "commercial strategy", "demand planning", "inventory planning",
     "supply chain", "procurement", "m&a", "mergers", "acquisitions", "transformation programme",
     "strategic initiatives", "divestment", "recruitment consultant",
+    "freight", "forwarder", "forwarding", "haulage", "shipping manager", "logistics manager",
+    "warehouse", "distribution", "transport manager", "product owner", "product manager",
+    "general manager", "managing director",
 ]
 _TITLE_BOOST = [
     "vendor operations", "seller operations", "e-commerce operations",
@@ -607,7 +618,7 @@ def run(test_mode: bool = False):
         top_jobs = keyword_rank_and_select(unique_jobs, top_n=OUTPUT_JOBS)
 
     method  = "AI-ranked" if llm_powered else "keyword-ranked"
-    subject = f"🔍 Your London Job Digest – Week of {week_of} ({OUTPUT_JOBS} {method} roles)"
+    subject = f"🔍 Your London Job Digest – Week of {week_of} ({len(top_jobs)} {method} roles)"
 
     save_jobs_json(top_jobs, week_of, llm_powered)
 
