@@ -40,7 +40,7 @@ jobs:
         run: python job_bot.py
 
       - name: Copy frontend to output/
-        run: cp frontend/index.html output/index.html
+        run: mkdir -p output && cp frontend/index.html output/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
