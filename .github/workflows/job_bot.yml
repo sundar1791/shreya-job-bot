@@ -14,7 +14,7 @@ permissions:
 jobs:
   send-job-digest:
     runs-on: ubuntu-latest
-    timeout-minutes: 20   # LinkedIn scraping can take longer than Adzuna
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
@@ -31,7 +31,8 @@ jobs:
 
       - name: Run job bot
         env:
-          APIFY_TOKEN:       ${{ secrets.APIFY_TOKEN }}
+          ADZUNA_APP_ID:     ${{ secrets.ADZUNA_APP_ID }}
+          ADZUNA_APP_KEY:    ${{ secrets.ADZUNA_APP_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GMAIL_USER:        ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASS:    ${{ secrets.GMAIL_APP_PASS }}
@@ -50,7 +51,7 @@ jobs:
           keep_files: false
           commit_message: "chore: update job digest ${{ github.run_id }}"
 
-      - name: Upload debug HTML on failure
+      - name: Upload debug artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:

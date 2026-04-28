@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Job Bot for Shreya Anantha Subramaniyam
-Weekly London job scanner via Apify LinkedIn scraper + Claude LLM ranking.
-Fetches ~100 LinkedIn jobs, ranks them with Claude, sends an email digest,
+Weekly London job scanner via Adzuna API + Claude LLM ranking.
+Fetches ~100 jobs, ranks them with Claude, sends an email digest,
 and writes output/jobs.json for the GitHub Pages frontend.
 
 Usage:
@@ -38,7 +38,8 @@ log = logging.getLogger("job_bot")
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-APIFY_TOKEN       = os.getenv("APIFY_TOKEN", "")
+ADZUNA_APP_ID     = os.getenv("ADZUNA_APP_ID", "")
+ADZUNA_APP_KEY    = os.getenv("ADZUNA_APP_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 GMAIL_USER     = os.getenv("GMAIL_USER", "")
@@ -49,26 +50,25 @@ TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 TARGET_FETCH = 100
 OUTPUT_JOBS  = 20
 OUTPUT_DIR   = os.path.join(os.path.dirname(__file__), "output")
-
-APIFY_ACTOR = "bebity~linkedin-jobs-scraper"
-APIFY_BASE  = "https://api.apify.com/v2"
+ADZUNA_BASE  = "https://api.adzuna.com/v1/api/jobs/gb/search"
 
 LLM_MODEL = "claude-haiku-4-5-20251001"
 
-# LinkedIn search queries derived from resume keywords
-LINKEDIN_QUERIES = [
-    "operations manager London",
-    "e-commerce operations manager London",
-    "vendor operations manager London",
-    "platform operations manager London",
-    "business operations lead London",
-    "data operations manager London",
-    "marketplace operations London",
-    "supply chain operations manager London",
-    "commercial operations manager London",
-    "retail operations manager London",
-    "data governance manager London",
-    "partner operations manager London",
+ADZUNA_QUERIES = [
+    "operations manager",
+    "operations lead",
+    "e-commerce operations",
+    "vendor operations",
+    "merchandising operations",
+    "platform operations",
+    "business operations manager",
+    "data operations manager",
+    "marketplace operations",
+    "supply chain operations manager",
+    "commercial operations manager",
+    "retail operations manager",
+    "data governance manager",
+    "partner operations manager",
 ]
 
 
@@ -89,95 +89,71 @@ def load_resume() -> str:
 
 
 # ─────────────────────────────────────────────
-# APIFY LINKEDIN SCRAPER
+# ADZUNA API
 # ─────────────────────────────────────────────
-def _parse_salary(salary_str: str) -> tuple[float | None, float | None]:
-    """Extract numeric min/max from a salary string like '£50,000 – £70,000'."""
-    if not salary_str:
-        return None, None
-    nums = [int(n.replace(",", "")) for n in re.findall(r'\d[\d,]+', salary_str)
-            if int(n.replace(",", "")) > 1000]
-    if len(nums) >= 2:
-        return float(min(nums)), float(max(nums))
-    if len(nums) == 1:
-        return float(nums[0]), None
-    return None, None
+def fetch_adzuna_jobs(query: str, page: int = 1, results_per_page: int = 20) -> list[dict]:
+    if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
+        log.warning("Adzuna credentials missing – skipping.")
+        return []
 
-
-def _normalise_job(item: dict) -> dict:
-    """Normalise an Apify LinkedIn item to our internal format."""
-    title   = item.get("title") or item.get("jobTitle") or ""
-    company = item.get("companyName") or item.get("company") or "Unknown"
-    loc     = item.get("location") or item.get("place") or "London, UK"
-    desc    = item.get("description") or item.get("descriptionText") or item.get("snippet") or ""
-    url     = item.get("url") or item.get("applyUrl") or item.get("link") or ""
-    posted  = item.get("postedAt") or item.get("publishedAt") or item.get("timeStamp") or ""
-    salary_str = item.get("salary") or item.get("salaryRange") or ""
-
-    # Build a stable ID from URL or title+company hash
-    raw_id = item.get("id") or item.get("jobId") or ""
-    if not raw_id:
-        raw_id = re.sub(r"[^a-z0-9]", "", (title + company).lower())[:24]
-
-    sal_min, sal_max = _parse_salary(salary_str)
-
-    return {
-        "source":       "LinkedIn",
-        "id":           f"li_{raw_id}",
-        "title":        title,
-        "company":      company,
-        "location":     loc,
-        "salary_min":   sal_min,
-        "salary_max":   sal_max,
-        "salary_str":   salary_str,
-        "description":  desc[:500],
-        "url":          url,
-        "date_posted":  str(posted),
-        "match_reason": "",
-        "score":        0,
-    }
-
-
-def _run_scraper_query(query: str, rows: int = 15) -> list[dict]:
-    """Call Apify synchronously for one query; returns normalised job dicts."""
-    url = f"{APIFY_BASE}/acts/{APIFY_ACTOR}/run-sync-get-dataset-items"
-    params = {"token": APIFY_TOKEN}
-    payload = {
-        "queries":  query,
-        "location": "United Kingdom",
-        "rows":     rows,
-        "proxy":    {"useApifyProxy": True},
+    params = {
+        "app_id":           ADZUNA_APP_ID,
+        "app_key":          ADZUNA_APP_KEY,
+        "results_per_page": results_per_page,
+        "what":             query,
+        "where":            "London",
+        "distance":         15,
+        "content-type":     "application/json",
+        "sort_by":          "date",
     }
     try:
-        log.info(f"  LinkedIn [{query!r}]: requesting {rows} jobs...")
-        resp = requests.post(url, params=params, json=payload, timeout=300)
+        resp = requests.get(f"{ADZUNA_BASE}/{page}", params=params, timeout=15)
         resp.raise_for_status()
-        items = resp.json()
-        jobs = [_normalise_job(i) for i in items if i.get("title")]
-        log.info(f"  LinkedIn [{query!r}]: got {len(jobs)} jobs")
+        raw_jobs = resp.json().get("results", [])
+        jobs = []
+        for j in raw_jobs:
+            jobs.append({
+                "source":       "Adzuna",
+                "id":           f"adzuna_{j.get('id', '')}",
+                "title":        j.get("title", ""),
+                "company":      j.get("company", {}).get("display_name", "Unknown"),
+                "location":     j.get("location", {}).get("display_name", "London"),
+                "salary_min":   j.get("salary_min"),
+                "salary_max":   j.get("salary_max"),
+                "salary_str":   "",
+                "description":  j.get("description", "")[:500],
+                "url":          j.get("redirect_url", ""),
+                "date_posted":  j.get("created", ""),
+                "match_reason": "",
+                "score":        0,
+            })
+        log.info(f"  Adzuna [{query!r} p{page}]: {len(jobs)} jobs")
         return jobs
     except requests.RequestException as e:
-        log.error(f"  LinkedIn [{query!r}] error: {e}")
+        log.error(f"  Adzuna [{query!r}] error: {e}")
         return []
 
 
-def fetch_all_linkedin(target: int = TARGET_FETCH) -> list[dict]:
-    """Cycle through queries until we have `target` unique jobs."""
-    if not APIFY_TOKEN:
-        log.error("APIFY_TOKEN not set — cannot fetch LinkedIn jobs.")
+def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
+    """Cycle through queries (2 pages each) until we have `target` unique jobs."""
+    if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
+        log.error("ADZUNA_APP_ID / ADZUNA_APP_KEY not set.")
         return []
 
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
-    for query in LINKEDIN_QUERIES:
+    for query in ADZUNA_QUERIES:
+        for page in (1, 2):
+            jobs = fetch_adzuna_jobs(query, page=page)
+            new = [j for j in jobs if j["id"] not in seen_ids]
+            seen_ids.update(j["id"] for j in new)
+            all_jobs.extend(new)
+            log.info(f"  Running unique total: {len(all_jobs)}")
+            if len(all_jobs) >= target:
+                break
         if len(all_jobs) >= target:
             break
-        jobs = _run_scraper_query(query, rows=15)
-        new = [j for j in jobs if j["id"] not in seen_ids]
-        seen_ids.update(j["id"] for j in new)
-        all_jobs.extend(new)
-        log.info(f"  Running unique total: {len(all_jobs)}")
 
     return all_jobs
 
@@ -207,10 +183,7 @@ def deduplicate(jobs: list[dict]) -> list[dict]:
 # LLM RANKING  (primary)
 # ─────────────────────────────────────────────
 def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> list[dict] | None:
-    """
-    Ask Claude to pick the top `top_n` jobs and assign scores 1–10.
-    Returns None on failure (triggers keyword fallback).
-    """
+    """Ask Claude to pick the top `top_n` jobs with 1–10 scores. Returns None on failure."""
     if not ANTHROPIC_API_KEY:
         log.warning("ANTHROPIC_API_KEY not set — keyword fallback.")
         return None
@@ -235,7 +208,7 @@ def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> li
 CANDIDATE PROFILE:
 {resume}
 
-Below are {len(jobs)} LinkedIn job listings. Select the top {top_n} best matches.
+Below are {len(jobs)} job listings. Select the top {top_n} best matches.
 
 Return ONLY valid JSON — no markdown fences, no extra text:
 {{
@@ -247,10 +220,10 @@ Return ONLY valid JSON — no markdown fences, no extra text:
 
 Rules:
 - Return exactly {top_n} selections (fewer only if strong matches are exhausted).
-- score is 1–10: 10 = perfect fit, 1 = very weak. Use the full range — spread scores across the list.
+- score is 1–10: 10 = perfect fit, 1 = very weak. Spread scores — avoid clustering everything at 8.
 - Sort by score descending.
 - Exclude: pure software/engineering, graduate/junior, unrelated finance, field sales.
-- match_reason must reference the candidate's actual background, not generic praise.
+- match_reason must reference the candidate's actual background.
 
 JOB LISTINGS:
 {chr(10).join(lines)}"""
@@ -278,7 +251,7 @@ JOB LISTINGS:
             ranked.append(job)
 
         ranked.sort(key=lambda j: j["score"], reverse=True)
-        log.info(f"LLM: selected {len(ranked)}, scores {[j['score'] for j in ranked]}")
+        log.info(f"LLM: {len(ranked)} jobs, scores {[j['score'] for j in ranked]}")
         return ranked
 
     except Exception as e:
@@ -331,7 +304,6 @@ def _score_job_keyword(job: dict) -> int:
 def keyword_rank_and_select(jobs: list[dict], top_n: int = OUTPUT_JOBS) -> list[dict]:
     for job in jobs:
         raw = _score_job_keyword(job)
-        # Normalise to 1–10 (raw range roughly -40 to 80)
         job["score"] = max(1, min(10, round((raw + 40) / 12)))
         job["match_reason"] = ""
     ranked = sorted(jobs, key=lambda j: j["score"], reverse=True)
@@ -344,7 +316,6 @@ def keyword_rank_and_select(jobs: list[dict], top_n: int = OUTPUT_JOBS) -> list[
 # SALARY FORMATTING
 # ─────────────────────────────────────────────
 def format_salary(job: dict) -> str:
-    # Prefer raw LinkedIn salary string if present
     if job.get("salary_str"):
         return job["salary_str"]
     lo, hi = job.get("salary_min"), job.get("salary_max")
@@ -399,12 +370,9 @@ def _truncate(text: str, length: int = 220) -> str:
 
 
 def _score_color(score: int) -> tuple[str, str]:
-    """Returns (background, text) hex colours for a score badge."""
-    if score >= 8:
-        return "#16a34a", "#ffffff"   # green
-    if score >= 6:
-        return "#ca8a04", "#ffffff"   # amber
-    return "#dc2626", "#ffffff"       # red
+    if score >= 8: return "#16a34a", "#ffffff"
+    if score >= 6: return "#ca8a04", "#ffffff"
+    return "#dc2626", "#ffffff"
 
 
 def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -> str:
@@ -433,7 +401,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
 
         score_badge = (
             f'<span style="background:{score_bg};color:{score_fg};padding:3px 10px;'
-            f'border-radius:12px;font-size:12px;font-weight:700;letter-spacing:0.5px;">'
+            f'border-radius:12px;font-size:12px;font-weight:700;">'
             f'Score: {score}/10</span>'
         )
 
@@ -448,7 +416,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
                   <table width="100%" cellpadding="0" cellspacing="0">
                     <tr>
                       <td>
-                        <span style="color:#888;font-size:12px;font-weight:600;letter-spacing:1px;">#{i}</span>
+                        <span style="color:#888;font-size:12px;font-weight:600;">#{i}</span>
                         &nbsp; {score_badge} &nbsp; {date_html}
                       </td>
                     </tr>
@@ -496,7 +464,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
 
     method_label = "AI-curated" if llm_powered else "keyword-matched"
     screened_note = (
-        "Screened by Claude AI from 100+ LinkedIn listings based on your resume."
+        "Screened by Claude AI from 100+ listings based on your resume."
         if llm_powered else
         "Ranked by keyword matching against your profile."
     )
@@ -539,7 +507,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         <tr>
           <td style="background:#2d2d44;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <p style="margin:0 0 6px 0;color:rgba(255,255,255,0.6);font-size:12px;">
-              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Source: LinkedIn via Apify
+              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Source: Adzuna &nbsp;|&nbsp; London &amp; surrounding areas
             </p>
             <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">
               Generated every Monday morning. Always verify directly with the employer.
@@ -595,12 +563,12 @@ def run(test_mode: bool = False):
     resume = load_resume()
     log.info(f"Loaded resume ({len(resume)} chars)")
 
-    log.info(f"Fetching up to {TARGET_FETCH} LinkedIn jobs via Apify...")
-    raw_jobs = fetch_all_linkedin(target=TARGET_FETCH)
+    log.info(f"Fetching up to {TARGET_FETCH} jobs from Adzuna...")
+    raw_jobs = fetch_all_jobs(target=TARGET_FETCH)
     log.info(f"Raw fetch: {len(raw_jobs)} jobs")
 
     if not raw_jobs:
-        log.error("No jobs fetched. Check APIFY_TOKEN and Apify actor availability.")
+        log.error("No jobs fetched. Check ADZUNA_APP_ID and ADZUNA_APP_KEY.")
         return
 
     unique_jobs = deduplicate(raw_jobs)
@@ -613,7 +581,6 @@ def run(test_mode: bool = False):
     method  = "AI-ranked" if llm_powered else "keyword-ranked"
     subject = f"🔍 Your London Job Digest – Week of {week_of} ({OUTPUT_JOBS} {method} roles)"
 
-    # Save JSON for frontend
     save_jobs_json(top_jobs, week_of, llm_powered)
 
     html_body = build_html_email(top_jobs, week_of, llm_powered=llm_powered)
@@ -623,8 +590,8 @@ def run(test_mode: bool = False):
         log.info(f"Done! Sent {len(top_jobs)} jobs ({method}).")
     else:
         log.warning("Email failed — saving debug HTML.")
-        debug_path = os.path.join(OUTPUT_DIR, "last_digest.html")
         os.makedirs(OUTPUT_DIR, exist_ok=True)
+        debug_path = os.path.join(OUTPUT_DIR, "last_digest.html")
         with open(debug_path, "w", encoding="utf-8") as f:
             f.write(html_body)
         log.info(f"Saved to: {debug_path}")
