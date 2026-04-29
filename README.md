@@ -1,12 +1,12 @@
 # London Job Bot — Shreya's Weekly Digest
 
-A Python script that scans Adzuna every Monday morning for London operations roles matching Shreya's profile, then sends a curated HTML email digest with the top 20 results. Runs in the cloud via GitHub Actions — no laptop required.
+A Python script that scans job listings every Monday morning for London operations roles matching Shreya's profile, then sends a curated HTML email digest with the top results. Runs in the cloud via GitHub Actions — no laptop required.
 
 ---
 
 ## What It Does
 
-- Queries **7 search terms** across Adzuna
+- Queries **14 search terms** via JSearch (aggregates Google Jobs, LinkedIn, Glassdoor & more)
 - Deduplicates results
 - Scores each job for relevance (title match, keywords, salary range, location)
 - Selects the **top 20** most relevant roles
@@ -17,12 +17,13 @@ A Python script that scans Adzuna every Monday morning for London operations rol
 
 ## Setup (One-Time)
 
-### Step 1 — Get your API keys (all free)
+### Step 1 — Get your API keys
 
-**Adzuna**
-1. Go to https://developer.adzuna.com/
-2. Click **Register** and create a free account
-3. Create an application → you'll get an **App ID** and **App Key**
+**JSearch (via RapidAPI)**
+1. Create a free account at https://rapidapi.com/
+2. Search for **JSearch** or go to https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch
+3. Click **Subscribe to Test** and choose the free tier
+4. Your **RapidAPI Key** is shown at the top of the API playground — copy it
 
 **Gmail App Password** (for sending email)
 1. Make sure your Gmail has 2-Step Verification enabled:
@@ -63,8 +64,7 @@ Your API keys must be stored as GitHub Secrets (never in code).
 
 | Secret name | Value |
 |---|---|
-| `ADZUNA_APP_ID` | Your Adzuna App ID |
-| `ADZUNA_APP_KEY` | Your Adzuna App Key |
+| `JSEARCH_API_KEY` | Your RapidAPI key (from the JSearch API page) |
 | `GMAIL_USER` | Your Gmail address |
 | `GMAIL_APP_PASS` | Your 16-character Gmail App Password |
 | `FROM_EMAIL` | Your Gmail address (same as above) |
@@ -112,11 +112,11 @@ All search behaviour is at the top of `job_bot.py`:
 
 | Variable | What it controls |
 |---|---|
-| `ADZUNA_QUERIES` | Search terms sent to Adzuna |
-| `POSITIVE_KEYWORDS` | Keywords that boost a job's relevance score |
-| `NEGATIVE_KEYWORDS` | Keywords that lower a job's score (engineering, junior, etc.) |
-| `TITLE_BOOST_KEYWORDS` | Job title matches get extra points |
-| `MAX_JOBS` | Number of jobs in the digest (default: 20) |
+| `SEARCH_QUERIES` | Search terms sent to JSearch (location appended automatically) |
+| `_POSITIVE` | Keywords that boost a job's relevance score |
+| `_NEGATIVE` | Keywords that lower a job's score (engineering, junior, etc.) |
+| `_TITLE_BOOST` | Job title matches get extra points |
+| `OUTPUT_JOBS` | Number of jobs in the digest (default: 10) |
 
 ---
 
@@ -124,7 +124,7 @@ All search behaviour is at the top of `job_bot.py`:
 
 **Workflow not triggering** — GitHub Actions schedules can be delayed by up to 15 minutes. Also check the repo is not archived.
 
-**"Adzuna credentials missing"** — Check the GitHub Secrets are named exactly as shown above (case-sensitive).
+**"JSEARCH_API_KEY not set"** — Check the GitHub Secret is named exactly `JSEARCH_API_KEY` (case-sensitive). Get your key from https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch.
 
 **"SMTP authentication failed"** — Re-generate your Gmail App Password and update the `GMAIL_APP_PASS` secret.
 
