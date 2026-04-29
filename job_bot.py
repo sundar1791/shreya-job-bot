@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Job Bot for Shreya Anantha Subramaniyam
-Weekly London job scanner via Adzuna API + Claude LLM ranking.
+Weekly London job scanner via JSearch API + Claude LLM ranking.
 Fetches ~100 jobs, ranks them with Claude, sends an email digest,
 and writes output/jobs.json for the GitHub Pages frontend.
 
@@ -38,8 +38,7 @@ log = logging.getLogger("job_bot")
 # ─────────────────────────────────────────────
 # CONFIG
 # ─────────────────────────────────────────────
-ADZUNA_APP_ID     = os.getenv("ADZUNA_APP_ID", "")
-ADZUNA_APP_KEY    = os.getenv("ADZUNA_APP_KEY", "")
+JSEARCH_API_KEY   = os.getenv("JSEARCH_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 GMAIL_USER     = os.getenv("GMAIL_USER", "")
@@ -47,31 +46,32 @@ GMAIL_APP_PASS = os.getenv("GMAIL_APP_PASS", "")
 FROM_EMAIL     = os.getenv("FROM_EMAIL", GMAIL_USER)
 TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 
-TARGET_FETCH = 100
-OUTPUT_JOBS  = 10
-OUTPUT_DIR   = os.path.join(os.path.dirname(__file__), "output")
-ADZUNA_BASE  = "https://api.adzuna.com/v1/api/jobs/gb/search"
+TARGET_FETCH     = 100
+OUTPUT_JOBS      = 10
+OUTPUT_DIR       = os.path.join(os.path.dirname(__file__), "output")
+JSEARCH_BASE     = "https://jsearch.p.rapidapi.com/search"
+JSEARCH_HOST     = "jsearch.p.rapidapi.com"
 
 LLM_MODEL = "claude-haiku-4-5-20251001"
 
 # Queries tuned specifically to Shreya's background:
 # vendor/seller onboarding, catalogue ops, e-commerce/marketplace platform ops.
-# Deliberately excludes supply chain logistics, commercial/revenue strategy, retail store ops.
-ADZUNA_QUERIES = [
-    "vendor operations manager ecommerce",
-    "seller operations manager marketplace",
-    "e-commerce operations manager",
-    "marketplace operations manager",
-    "vendor onboarding manager",
-    "catalogue operations manager",
-    "platform operations manager ecommerce",
-    "seller onboarding operations",
-    "merchandising operations manager",
-    "data governance manager ecommerce",
-    "customer success manager ecommerce",
-    "customer success manager marketplace",
-    "partner operations manager ecommerce",
-    "vendor management ecommerce",
+# "in London, UK" is embedded so JSearch (Google Jobs aggregator) targets the right location.
+SEARCH_QUERIES = [
+    "vendor operations manager ecommerce in London UK",
+    "seller operations manager marketplace in London UK",
+    "e-commerce operations manager in London UK",
+    "marketplace operations manager in London UK",
+    "vendor onboarding manager in London UK",
+    "catalogue operations manager in London UK",
+    "platform operations manager ecommerce in London UK",
+    "seller onboarding operations in London UK",
+    "merchandising operations manager in London UK",
+    "data governance manager ecommerce in London UK",
+    "customer success manager ecommerce in London UK",
+    "customer success manager marketplace in London UK",
+    "partner operations manager ecommerce in London UK",
+    "vendor management ecommerce in London UK",
 ]
 
 
@@ -92,63 +92,84 @@ def load_resume() -> str:
 
 
 # ─────────────────────────────────────────────
-# ADZUNA API
+# JSEARCH API
 # ─────────────────────────────────────────────
-def fetch_adzuna_jobs(query: str, page: int = 1, results_per_page: int = 20) -> list[dict]:
-    if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
-        log.warning("Adzuna credentials missing – skipping.")
+def _normalize_salary(raw: float | None, period: str | None) -> float | None:
+    """Convert monthly/weekly salary figures to annual for consistent scoring."""
+    if raw is None:
+        return None
+    period = (period or "").upper()
+    if period == "MONTH":
+        return raw * 12
+    if period == "WEEK":
+        return raw * 52
+    if period == "HOUR":
+        return raw * 40 * 52
+    return raw  # YEAR or unknown — return as-is
+
+
+def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
+    if not JSEARCH_API_KEY:
+        log.warning("JSEARCH_API_KEY missing – skipping.")
         return []
 
     params = {
-        "app_id":           ADZUNA_APP_ID,
-        "app_key":          ADZUNA_APP_KEY,
-        "results_per_page": results_per_page,
-        "what":             query,
-        "where":            "London",
-        "distance":         15,
-        "content-type":     "application/json",
-        "sort_by":          "date",
+        "query":       query,
+        "page":        page,
+        "num_pages":   1,
+        "date_posted": "month",
+        "job_country": "gb",
+    }
+    headers = {
+        "X-RapidAPI-Key":  JSEARCH_API_KEY,
+        "X-RapidAPI-Host": JSEARCH_HOST,
     }
     try:
-        resp = requests.get(f"{ADZUNA_BASE}/{page}", params=params, timeout=15)
+        resp = requests.get(JSEARCH_BASE, params=params, headers=headers, timeout=15)
         resp.raise_for_status()
-        raw_jobs = resp.json().get("results", [])
+        raw_jobs = resp.json().get("data", [])
+        period = None
         jobs = []
         for j in raw_jobs:
+            period = j.get("job_salary_period")
+            location_parts = [p for p in [
+                j.get("job_city"), j.get("job_state"), j.get("job_country", "").upper() or None
+            ] if p]
+            location = ", ".join(location_parts) if location_parts else "London, UK"
             jobs.append({
-                "source":       "Adzuna",
-                "id":           f"adzuna_{j.get('id', '')}",
-                "title":        j.get("title", ""),
-                "company":      j.get("company", {}).get("display_name", "Unknown"),
-                "location":     j.get("location", {}).get("display_name", "London"),
-                "salary_min":   j.get("salary_min"),
-                "salary_max":   j.get("salary_max"),
+                "source":       "JSearch",
+                "id":           f"jsearch_{j.get('job_id', '')}",
+                "title":        j.get("job_title", ""),
+                "company":      j.get("employer_name", "Unknown"),
+                "location":     location,
+                "salary_min":   _normalize_salary(j.get("job_min_salary"), period),
+                "salary_max":   _normalize_salary(j.get("job_max_salary"), period),
                 "salary_str":   "",
-                "description":  j.get("description", "")[:500],
-                "url":          j.get("redirect_url", ""),
-                "date_posted":  j.get("created", ""),
+                "description":  j.get("job_description", "")[:500],
+                "url":          j.get("job_apply_link", ""),
+                "date_posted":  j.get("job_posted_at_datetime_utc", ""),
                 "match_reason": "",
                 "score":        0,
             })
-        log.info(f"  Adzuna [{query!r} p{page}]: {len(jobs)} jobs")
+        log.info(f"  JSearch [{query!r} p{page}]: {len(jobs)} jobs")
         return jobs
     except requests.RequestException as e:
-        log.error(f"  Adzuna [{query!r}] error: {e}")
+        log.error(f"  JSearch [{query!r}] error: {e}")
         return []
 
 
 def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
     """Cycle through queries (2 pages each) until we have `target` unique jobs."""
-    if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
-        log.error("ADZUNA_APP_ID / ADZUNA_APP_KEY not set.")
+    if not JSEARCH_API_KEY:
+        log.error("JSEARCH_API_KEY not set.")
         return []
 
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
-    for query in ADZUNA_QUERIES:
+    for query in SEARCH_QUERIES:
         for page in (1, 2):
-            jobs = fetch_adzuna_jobs(query, page=page)
+            jobs = fetch_jsearch_jobs(query, page=page)
             new = [j for j in jobs if j["id"] not in seen_ids]
             seen_ids.update(j["id"] for j in new)
             all_jobs.extend(new)
@@ -546,7 +567,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         <tr>
           <td style="background:#2d2d44;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <p style="margin:0 0 6px 0;color:rgba(255,255,255,0.6);font-size:12px;">
-              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Source: Adzuna &nbsp;|&nbsp; London &amp; surrounding areas
+              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Source: JSearch &nbsp;|&nbsp; London &amp; surrounding areas
             </p>
             <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">
               Generated every Monday morning. Always verify directly with the employer.
@@ -602,12 +623,12 @@ def run(test_mode: bool = False):
     resume = load_resume()
     log.info(f"Loaded resume ({len(resume)} chars)")
 
-    log.info(f"Fetching up to {TARGET_FETCH} jobs from Adzuna...")
+    log.info(f"Fetching up to {TARGET_FETCH} jobs from JSearch...")
     raw_jobs = fetch_all_jobs(target=TARGET_FETCH)
     log.info(f"Raw fetch: {len(raw_jobs)} jobs")
 
     if not raw_jobs:
-        log.error("No jobs fetched. Check ADZUNA_APP_ID and ADZUNA_APP_KEY.")
+        log.error("No jobs fetched. Check JSEARCH_API_KEY.")
         return
 
     unique_jobs = deduplicate(raw_jobs)
