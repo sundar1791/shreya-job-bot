@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
 Job Bot for Shreya Anantha Subramaniyam
-Weekly London job scanner via JSearch API + Claude LLM ranking.
-Fetches ~200 jobs, ranks them with Claude, sends an email digest,
-and writes output/jobs.json for the GitHub Pages frontend.
+Weekly London job scanner via JSearch + Active Jobs DB, ranked by Claude Sonnet.
+Sends an HTML email digest and writes output/jobs.json for the GitHub Pages frontend.
 
 Usage:
     python job_bot.py           # Normal run
@@ -19,14 +18,14 @@ import re
 from datetime import date, datetime, timezone
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
-# ─────────────────────────────────────────────
-SETUP
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# SETUP
+# ─────────────────────────────────────────────────────────────────
 load_dotenv()
 logging.basicConfig(
     level=logging.INFO,
@@ -36,9 +35,9 @@ logging.basicConfig(
 log = logging.getLogger("job_bot")
 
 
-# ─────────────────────────────────────────────
-CONFIG
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# CONFIG
+# ─────────────────────────────────────────────────────────────────
 JSEARCH_API_KEY   = os.getenv("JSEARCH_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
@@ -48,15 +47,17 @@ FROM_EMAIL     = os.getenv("FROM_EMAIL", GMAIL_USER)
 TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 
 OUTPUT_JOBS      = 20
+PRE_FILTER_TOP_N = 150   # candidates forwarded to LLM after keyword pre-filter
 OUTPUT_DIR       = os.path.join(os.path.dirname(__file__), "output")
-JSEARCH_BASE     = "https://jsearch.p.rapidapi.com/search"
-JSEARCH_HOST     = "jsearch.p.rapidapi.com"
-ACTIVEJOBS_BASE  = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
-ACTIVEJOBS_HOST  = "active-jobs-db.p.rapidapi.com"
 
-LLM_MODEL = "claude-haiku-4-5-20251001"
+JSEARCH_BASE    = "https://jsearch.p.rapidapi.com/search"
+JSEARCH_HOST    = "jsearch.p.rapidapi.com"
+ACTIVEJOBS_BASE = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
+ACTIVEJOBS_HOST = "active-jobs-db.p.rapidapi.com"
 
-# Queries for JSearch — location embedded in string (Google Jobs aggregator style).
+LLM_MODEL = "claude-sonnet-4-6"
+
+# JSearch — location embedded in query string (Google Jobs aggregator style).
 SEARCH_QUERIES = [
     "vendor operations manager ecommerce in London UK",
     "seller operations manager marketplace in London UK",
@@ -74,7 +75,7 @@ SEARCH_QUERIES = [
     "vendor management ecommerce in London UK",
 ]
 
-# Queries for Active Jobs DB — uses a separate location_filter param so no suffix needed.
+# Active Jobs DB — location passed as a separate param, no suffix needed.
 ACTIVEJOBS_QUERIES = [
     "vendor operations manager ecommerce",
     "seller operations manager marketplace",
@@ -92,9 +93,9 @@ ACTIVEJOBS_QUERIES = [
 ]
 
 
-# ─────────────────────────────────────────────
-RESUME
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# RESUME
+# ─────────────────────────────────────────────────────────────────
 def load_resume() -> str:
     resume_path = os.path.join(os.path.dirname(__file__), "resume.txt")
     if os.path.exists(resume_path):
@@ -108,11 +109,10 @@ def load_resume() -> str:
     )
 
 
-# ─────────────────────────────────────────────
-JSEARCH API
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# API FETCHING
+# ─────────────────────────────────────────────────────────────────
 def _normalize_salary(raw: float | None, period: str | None) -> float | None:
-    """Convert monthly/weekly salary figures to annual for consistent scoring."""
     if raw is None:
         return None
     period = (period or "").upper()
@@ -122,14 +122,13 @@ def _normalize_salary(raw: float | None, period: str | None) -> float | None:
         return raw * 52
     if period == "HOUR":
         return raw * 40 * 52
-    return raw  # YEAR or unknown — return as-is
+    return raw
 
 
 def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
     if not JSEARCH_API_KEY:
         log.warning("JSEARCH_API_KEY missing – skipping.")
         return []
-
     params = {
         "query":       query,
         "page":        page,
@@ -144,12 +143,12 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
         resp = requests.get(JSEARCH_BASE, params=params, headers=headers, timeout=30)
         resp.raise_for_status()
         raw_jobs = resp.json().get("data", [])
-        period = None
         jobs = []
         for j in raw_jobs:
             period = j.get("job_salary_period")
             location_parts = [p for p in [
-                j.get("job_city"), j.get("job_state"), (j.get("job_country") or "").upper() or None
+                j.get("job_city"), j.get("job_state"),
+                (j.get("job_country") or "").upper() or None,
             ] if p]
             location = ", ".join(location_parts) if location_parts else "London, UK"
             jobs.append({
@@ -174,17 +173,17 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
         return []
 
 
-def fetch_activejobs_jobs(query: str, offset: int = 0, limit: int = 10) -> list[dict]:
+def fetch_activejobs_jobs(query: str) -> list[dict]:
+    """Fetch up to 100 jobs in a single request (max allowed by the API)."""
     if not JSEARCH_API_KEY:
         log.warning("JSEARCH_API_KEY missing – skipping Active Jobs DB.")
         return []
-
     params = {
         "title_filter":     query,
         "location_filter":  "London",
         "description_type": "text",
-        "offset":           offset,
-        "limit":            limit,
+        "offset":           0,
+        "limit":            100,
     }
     headers = {
         "X-RapidAPI-Key":  JSEARCH_API_KEY,
@@ -199,7 +198,8 @@ def fetch_activejobs_jobs(query: str, offset: int = 0, limit: int = 10) -> list[
         for j in raw_jobs:
             url = (j.get("url") or j.get("apply_url") or j.get("job_url")
                    or j.get("apply_link") or j.get("source_url") or "")
-            uid = j.get("id") or j.get("job_id") or f"{j.get('title','')}{j.get('organization','')}"
+            uid = (j.get("id") or j.get("job_id")
+                   or f"{j.get('title', '')}{j.get('organization', '')}")
             jobs.append({
                 "source":       "ActiveJobsDB",
                 "id":           f"activejobs_{uid}",
@@ -215,7 +215,7 @@ def fetch_activejobs_jobs(query: str, offset: int = 0, limit: int = 10) -> list[
                 "match_reason": "",
                 "score":        0,
             })
-        log.info(f"  ActiveJobsDB [{query!r} offset={offset}]: {len(jobs)} jobs")
+        log.info(f"  ActiveJobsDB [{query!r}]: {len(jobs)} jobs")
         return jobs
     except requests.RequestException as e:
         log.error(f"  ActiveJobsDB [{query!r}] error: {e}")
@@ -223,27 +223,28 @@ def fetch_activejobs_jobs(query: str, offset: int = 0, limit: int = 10) -> list[
 
 
 def fetch_all_jobs() -> list[dict]:
-    """Fetch from JSearch and Active Jobs DB concurrently and pool all results."""
+    """Fire all JSearch and Active Jobs DB requests concurrently and pool results."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
 
-    # Build task list: (kind, query, param)
     tasks: list[tuple] = []
     for query in SEARCH_QUERIES:
         for page in (1, 2, 3):
             tasks.append(("jsearch", query, page))
     for query in ACTIVEJOBS_QUERIES:
-        for offset in (0, 10, 20):
-            tasks.append(("activejobs", query, offset))
+        tasks.append(("activejobs", query, None))
 
-    log.info(f"Firing {len(tasks)} requests across JSearch + Active Jobs DB concurrently...")
+    log.info(
+        f"Firing {len(tasks)} requests "
+        f"({len(SEARCH_QUERIES) * 3} JSearch + {len(ACTIVEJOBS_QUERIES)} ActiveJobsDB) concurrently..."
+    )
 
     def _run(task):
         kind, query, param = task
         if kind == "jsearch":
             return fetch_jsearch_jobs(query, page=param)
-        return fetch_activejobs_jobs(query, offset=param)
+        return fetch_activejobs_jobs(query)
 
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
@@ -264,9 +265,9 @@ def fetch_all_jobs() -> list[dict]:
     return all_jobs
 
 
-# ─────────────────────────────────────────────
-DEDUPLICATION
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# DEDUPLICATION
+# ─────────────────────────────────────────────────────────────────
 def deduplicate(jobs: list[dict]) -> list[dict]:
     seen_urls: set[str] = set()
     seen_keys: set[str] = set()
@@ -285,11 +286,111 @@ def deduplicate(jobs: list[dict]) -> list[dict]:
     return unique
 
 
-# ─────────────────────────────────────────────
-LLM RANKING  (primary)
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# KEYWORD SCORING  (used for pre-filter and fallback ranking)
+# ─────────────────────────────────────────────────────────────────
+_POSITIVE = [
+    "e-commerce", "ecommerce", "marketplace", "vendor", "seller", "onboarding",
+    "catalogue", "catalog", "merchandising", "platform operations", "data governance",
+    "data quality", "partner", "sla", "workflow", "process improvement",
+    "continuous improvement", "agile", "cross-functional", "product and engineering",
+    "migration", "service operations", "team lead", "digital platform",
+]
+_NEGATIVE = [
+    "software engineer", "developer", "coding", "devops", "data engineer",
+    "machine learning", "ml engineer", "junior", "graduate", "intern",
+    "accountant", "finance manager", "financial analyst", "field sales",
+    "revenue strategy", "commercial strategy", "demand planning", "inventory planning",
+    "supply chain", "procurement", "m&a", "mergers", "acquisitions",
+    "transformation programme", "strategic initiatives", "divestment",
+    "recruitment consultant", "freight", "forwarder", "forwarding", "haulage",
+    "shipping manager", "logistics manager", "warehouse", "distribution",
+    "transport manager", "product owner", "product manager",
+    "general manager", "managing director",
+]
+_TITLE_BOOST = [
+    "vendor operations", "seller operations", "e-commerce operations",
+    "platform operations", "marketplace operations", "catalogue operations",
+    "data governance", "onboarding manager", "vendor onboarding",
+    "operations lead", "operations manager",
+]
+
+# Title-level hard disqualifiers — removed before the LLM sees anything.
+_TITLE_DISQUALIFIERS = [
+    "freight", "forwarder", "forwarding", "haulage", "shipping manager",
+    "logistics manager", "warehouse", "distribution manager", "transport manager",
+    "software engineer", "data engineer", "machine learning", "devops",
+    "recruitment consultant", "talent acquisition", "hr manager",
+    "financial analyst", "finance manager", "accountant",
+    "managing director",
+]
+
+
+def _score_job_keyword(job: dict) -> int:
+    score = 0
+    title = (job.get("title") or "").lower()
+    text  = f"{title} {(job.get('description') or '').lower()}"
+    loc   = (job.get("location") or "").lower()
+    lo, hi = job.get("salary_min") or 0, job.get("salary_max") or 0
+    for kw in _NEGATIVE:
+        if kw in text:
+            score -= 20
+    for kw in _TITLE_BOOST:
+        if kw in title:
+            score += 15
+    for kw in _POSITIVE:
+        if kw in text:
+            score += 2
+    if "london" in loc:
+        score += 10
+    if "hybrid" in text or "remote" in text:
+        score += 5
+    avg = (lo + hi) / 2 if hi else lo
+    if 45_000 <= avg <= 95_000:
+        score += 8
+    elif avg > 95_000:
+        score += 3
+    return score
+
+
+def pre_filter_jobs(jobs: list[dict], top_n: int = PRE_FILTER_TOP_N) -> list[dict]:
+    """Remove obvious title-level disqualifiers, then return top_n by keyword score."""
+    filtered = []
+    removed = 0
+    for job in jobs:
+        title = (job.get("title") or "").lower()
+        if any(kw in title for kw in _TITLE_DISQUALIFIERS):
+            removed += 1
+            continue
+        filtered.append(job)
+
+    log.info(f"Pre-filter: removed {removed} disqualified by title, {len(filtered)} remaining")
+
+    for job in filtered:
+        job["_pre_score"] = _score_job_keyword(job)
+    filtered.sort(key=lambda j: j["_pre_score"], reverse=True)
+
+    selected = filtered[:top_n]
+    log.info(f"Pre-filter: forwarding top {len(selected)} candidates to LLM")
+    return selected
+
+
+def keyword_rank_and_select(jobs: list[dict], top_n: int = OUTPUT_JOBS) -> list[dict]:
+    for job in jobs:
+        raw = _score_job_keyword(job)
+        job["score"] = max(1, min(10, round((raw + 40) / 12)))
+        job["match_reason"] = ""
+    ranked = sorted(jobs, key=lambda j: j["score"], reverse=True)
+    selected = ranked[:top_n]
+    log.info(f"Keyword fallback: top {len(selected)}, scores {[j['score'] for j in selected]}")
+    return selected
+
+
+# ─────────────────────────────────────────────────────────────────
+# LLM RANKING
+# ─────────────────────────────────────────────────────────────────
 def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> list[dict] | None:
-    """Ask Claude to pick the top `top_n` jobs with 1–10 scores. Returns None on failure."""
+    """Ask Claude Sonnet to pick the top `top_n` jobs with 1–10 scores."""
     if not ANTHROPIC_API_KEY:
         log.warning("ANTHROPIC_API_KEY not set — keyword fallback.")
         return None
@@ -309,7 +410,7 @@ def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> li
             f"[{i}] {job['title']} | {job['company']} | {job['location']} | {salary}\n{desc}"
         )
 
-    prompt = f"""You are a specialist careers advisor. Screen these job listings against the candidate's profile.
+    prompt = f"""You are a specialist careers advisor. Screen these job listings against the candidate's full profile below.
 
 CANDIDATE PROFILE:
 {resume}
@@ -342,7 +443,7 @@ Do NOT give a passing score (≥6) to:
 - Any "Product Owner" or "Technical Product Manager" role focused on software delivery
 - Generic "Operations Manager" roles in financial services, consulting, or professional services
 
-Below are {len(jobs)} job listings. Select the top {top_n} best matches.
+Below are {len(jobs)} pre-filtered job listings. Select the top {top_n} best matches.
 
 Return ONLY valid JSON — no markdown fences, no extra text:
 {{
@@ -353,11 +454,11 @@ Return ONLY valid JSON — no markdown fences, no extra text:
 }}
 
 Rules:
-- Return AT MOST {top_n} selections. If fewer than {top_n} jobs genuinely score 6 or above, return only those — do NOT pad the list with weak matches scored below 6.
+- Return AT MOST {top_n} selections. If fewer than {top_n} jobs genuinely score 6 or above, return only those — do NOT pad with weak matches.
 - score 1–10: 10 = direct match on e-commerce/vendor/catalogue ops, 1 = hard disqualifier.
-- Spread scores — do not cluster everything at 7–8. A score of 9–10 should be rare and only for an almost perfect match.
+- Spread scores — do not cluster everything at 7–8. A 9–10 should be rare and only for an almost perfect match.
 - Sort by score descending.
-- match_reason must reference the candidate's specific background (vendor onboarding, catalogue ops, Lowe's scale, etc.).
+- match_reason must reference the candidate's specific background (e.g. vendor onboarding at scale, catalogue taxonomy governance, 10K+ partner migration at Lowe's, ICF coaching qualification, etc.).
 
 JOB LISTINGS:
 {chr(10).join(lines)}"""
@@ -394,69 +495,9 @@ JOB LISTINGS:
         return None
 
 
-# ─────────────────────────────────────────────
-KEYWORD FALLBACK SCORING
-# ─────────────────────────────────────────────
-_POSITIVE = [
-    "e-commerce", "ecommerce", "marketplace", "vendor", "seller", "onboarding",
-    "catalogue", "catalog", "merchandising", "platform operations", "data governance",
-    "data quality", "partner", "sla", "workflow", "process improvement",
-    "continuous improvement", "agile", "cross-functional", "product and engineering",
-    "migration", "service operations", "team lead", "digital platform",
-]
-_NEGATIVE = [
-    "software engineer", "developer", "coding", "devops", "data engineer",
-    "machine learning", "ml engineer", "junior", "graduate", "intern",
-    "accountant", "finance manager", "financial analyst", "field sales",
-    "revenue strategy", "commercial strategy", "demand planning", "inventory planning",
-    "supply chain", "procurement", "m&a", "mergers", "acquisitions", "transformation programme",
-    "strategic initiatives", "divestment", "recruitment consultant",
-    "freight", "forwarder", "forwarding", "haulage", "shipping manager", "logistics manager",
-    "warehouse", "distribution", "transport manager", "product owner", "product manager",
-    "general manager", "managing director",
-]
-_TITLE_BOOST = [
-    "vendor operations", "seller operations", "e-commerce operations",
-    "platform operations", "marketplace operations", "catalogue operations",
-    "data governance", "onboarding manager", "vendor onboarding",
-    "operations lead", "operations manager",
-]
-
-
-def _score_job_keyword(job: dict) -> int:
-    score = 0
-    title = (job.get("title") or "").lower()
-    text  = f"{title} {(job.get('description') or '').lower()}"
-    loc   = (job.get("location") or "").lower()
-    lo, hi = job.get("salary_min") or 0, job.get("salary_max") or 0
-    for kw in _NEGATIVE:
-        if kw in text: score -= 20
-    for kw in _TITLE_BOOST:
-        if kw in title: score += 15
-    for kw in _POSITIVE:
-        if kw in text: score += 2
-    if "london" in loc: score += 10
-    if "hybrid" in text or "remote" in text: score += 5
-    avg = (lo + hi) / 2 if hi else lo
-    if 45_000 <= avg <= 95_000: score += 8
-    elif avg > 95_000: score += 3
-    return score
-
-
-def keyword_rank_and_select(jobs: list[dict], top_n: int = OUTPUT_JOBS) -> list[dict]:
-    for job in jobs:
-        raw = _score_job_keyword(job)
-        job["score"] = max(1, min(10, round((raw + 40) / 12)))
-        job["match_reason"] = ""
-    ranked = sorted(jobs, key=lambda j: j["score"], reverse=True)
-    selected = ranked[:top_n]
-    log.info(f"Keyword fallback: top {len(selected)}, scores {[j['score'] for j in selected]}")
-    return selected
-
-
-# ─────────────────────────────────────────────
-SALARY FORMATTING
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# SALARY FORMATTING
+# ─────────────────────────────────────────────────────────────────
 def format_salary(job: dict) -> str:
     if job.get("salary_str"):
         return job["salary_str"]
@@ -470,9 +511,9 @@ def format_salary(job: dict) -> str:
     return "Not specified"
 
 
-# ─────────────────────────────────────────────
-JSON OUTPUT  (for frontend)
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# JSON OUTPUT  (for frontend)
+# ─────────────────────────────────────────────────────────────────
 def save_jobs_json(jobs: list[dict], week_of: str, llm_powered: bool) -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     payload = {
@@ -502,9 +543,9 @@ def save_jobs_json(jobs: list[dict], week_of: str, llm_powered: bool) -> None:
     log.info(f"Saved {len(jobs)} jobs to {path}")
 
 
-# ─────────────────────────────────────────────
-EMAIL FORMATTING
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# EMAIL FORMATTING
+# ─────────────────────────────────────────────────────────────────
 def _truncate(text: str, length: int = 220) -> str:
     text = re.sub(r"<[^>]+>", "", text or "")
     text = re.sub(r"\s+", " ", text).strip()
@@ -512,8 +553,10 @@ def _truncate(text: str, length: int = 220) -> str:
 
 
 def _score_color(score: int) -> tuple[str, str]:
-    if score >= 8: return "#16a34a", "#ffffff"
-    if score >= 6: return "#ca8a04", "#ffffff"
+    if score >= 8:
+        return "#16a34a", "#ffffff"
+    if score >= 6:
+        return "#ca8a04", "#ffffff"
     return "#dc2626", "#ffffff"
 
 
@@ -527,15 +570,19 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         score_bg, score_fg = _score_color(score)
 
         date_str  = job.get("date_posted", "")[:10]
-        date_html = f'<span style="color:#888;font-size:12px;">Posted: {date_str}</span>' if date_str else ""
+        date_html = (
+            f'<span style="color:#888;font-size:12px;">Posted: {date_str}</span>'
+            if date_str else ""
+        )
 
         match_html = ""
         if match_reason:
             match_html = f"""
               <tr>
                 <td style="padding:0 20px 12px 20px;">
-                  <div style="background:#f0fdf4;border-left:3px solid #22c55e;border-radius:0 6px 6px 0;
-                              padding:8px 12px;font-size:12px;color:#166534;line-height:1.5;">
+                  <div style="background:#f0fdf4;border-left:3px solid #22c55e;
+                              border-radius:0 6px 6px 0;padding:8px 12px;
+                              font-size:12px;color:#166534;line-height:1.5;">
                     ✨ <strong>Why it matches:</strong> {match_reason}
                   </div>
                 </td>
@@ -546,6 +593,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
             f'border-radius:12px;font-size:12px;font-weight:700;">'
             f'Score: {score}/10</span>'
         )
+        money_icon = "💰" if salary_str != "Not specified" else "💼"
 
         job_cards += f"""
         <tr>
@@ -581,7 +629,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
                   <table cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding-right:20px;color:#555;font-size:13px;">📍 {job['location']}</td>
-                      <td style="color:#555;font-size:13px;">{"\U0001f4b0" if salary_str != "Not specified" else "\U0001f4bc"} {salary_str}</td>
+                      <td style="color:#555;font-size:13px;">{money_icon} {salary_str}</td>
                     </tr>
                   </table>
                 </td>
@@ -606,10 +654,11 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
 
     method_label = "AI-curated" if llm_powered else "keyword-matched"
     screened_note = (
-        "Screened by Claude AI from 200+ listings based on your resume."
+        "Screened by Claude AI from hundreds of listings based on your full resume."
         if llm_powered else
         "Ranked by keyword matching against your profile."
     )
+    ai_credit = "Ranked by Claude Sonnet &nbsp;·&nbsp; " if llm_powered else ""
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -649,7 +698,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         <tr>
           <td style="background:#2d2d44;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <p style="margin:0 0 6px 0;color:rgba(255,255,255,0.6);font-size:12px;">
-              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Sources: JSearch &amp; Active Jobs DB &nbsp;|&nbsp; London &amp; surrounding areas
+              {ai_credit}Sources: JSearch &amp; Active Jobs DB &nbsp;|&nbsp; London &amp; surrounding areas
             </p>
             <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">
               Generated every Monday morning. Always verify directly with the employer.
@@ -663,9 +712,9 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
 </html>"""
 
 
-# ─────────────────────────────────────────────
-EMAIL SENDING
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# EMAIL SENDING
+# ─────────────────────────────────────────────────────────────────
 def send_email(subject: str, html_body: str) -> bool:
     if not GMAIL_USER or not GMAIL_APP_PASS:
         log.error("Gmail credentials missing.")
@@ -690,9 +739,9 @@ def send_email(subject: str, html_body: str) -> bool:
         return False
 
 
-# ─────────────────────────────────────────────
-MAIN
-# ─────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────────────────────────────
 def run(test_mode: bool = False):
     today   = date.today()
     week_of = today.strftime("%B %d, %Y")
@@ -714,8 +763,9 @@ def run(test_mode: bool = False):
         return
 
     unique_jobs = deduplicate(raw_jobs)
+    candidates  = pre_filter_jobs(unique_jobs, top_n=PRE_FILTER_TOP_N)
 
-    top_jobs = llm_rank_jobs(unique_jobs, resume, top_n=OUTPUT_JOBS)
+    top_jobs = llm_rank_jobs(candidates, resume, top_n=OUTPUT_JOBS)
     llm_powered = top_jobs is not None
     if not llm_powered:
         top_jobs = keyword_rank_and_select(unique_jobs, top_n=OUTPUT_JOBS)
