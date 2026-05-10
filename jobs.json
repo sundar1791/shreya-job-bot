@@ -1,23 +1,10 @@
 {
-  "generated_at": "2026-05-10T20:12:40.134725+00:00",
+  "generated_at": "2026-05-10T20:39:02.370717+00:00",
   "week_of": "May 10, 2026",
   "llm_powered": true,
   "jobs": [
     {
       "rank": 1,
-      "title": "Senior Product Operation Manager",
-      "company": "Joybuy",
-      "location": "London, GB",
-      "salary": "Not specified",
-      "description": "Role Overview\n\nYou will own the end-to-end governance of our marketplace, with full accountability for trust, safety, and compliance outcomes. You will build and scale mechanisms that detect, prevent, and eliminate bad actors, and ensure a high-quality, reliable experience for customers. This role requires strong judgment, deep dive into data, and the ability to translate complex regulatory and risk requirements into simple, scalable operational systems.\n\nThis role is critical to achieving our a",
-      "url": "https://www.itjobswatch.co.uk/jv/Joybuy/Senior-Product-Operation-Manager-Job-City-of-London-London-UK-4zxhhw",
-      "date_posted": "2026-05-08T00:00:00.000Z",
-      "score": 9,
-      "match_reason": "Direct match: end-to-end marketplace governance, trust/compliance, seller quality—aligns with Shreya's 10K+ vendor onboarding and platform operations expertise at Lowe's scale.",
-      "source": "JSearch"
-    },
-    {
-      "rank": 2,
       "title": "Strategy & Operations Leader - Marketplace International",
       "company": "JD.COM",
       "location": "London, GB",
@@ -26,24 +13,24 @@
       "url": "https://bebee.com/gb/jobs/strategy-operations-leader-marketplace-international-jdcom-london-england--theirstack-677493425",
       "date_posted": "2026-05-06T00:00:00.000Z",
       "score": 9,
-      "match_reason": "Strategic marketplace ops role at JD.com; matches Shreya's vendor ecosystem experience, international scale, platform operations, and cross-functional collaboration with product/engineering.",
+      "match_reason": "JD.COM's Strategy & Operations Leader - Marketplace International role directly aligns with Shreya's 10+ years in marketplace operations, vendor ecosystem management at scale, and cross-functional collaboration with product teams.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 2,
+      "title": "eCommerce Manager | Vendor Manager",
+      "company": "Intelligent People",
+      "location": "London, GB",
+      "salary": "Not specified",
+      "description": "An eCommerce Manager / Vendor Manager / Merchandising Manager needed by a rapidly scaling arts & crafts eCommerce organisation who have seen a 300% growth in the last year!\n\nSalary Package: £50-60k + Benefits\n\nLocation: London (Fully Remote , occasional team meets)\n\nThe eCommerce Manager / Vendor Manager / Merchandising Manager will work across a wide range of Product Development, Marketing and eCommerce focused projects.\n\nThe eCommerce Manager / Vendor Manager / Merchandising Manager will:\n\n– D",
+      "url": "https://www.intelligentpeople.co.uk/job/ecommerce-manager-ja9513-1714056571/",
+      "date_posted": "2026-04-24T00:00:00.000Z",
+      "score": 9,
+      "match_reason": "eCommerce Manager / Vendor Manager role at scaling arts & crafts company mirrors Shreya's core expertise: vendor management, merchandising operations, and enablement with direct relevance to her Lowe's vendor platform background.",
       "source": "JSearch"
     },
     {
       "rank": 3,
-      "title": "Marketplace Growth & Ops Lead (Hybrid)",
-      "company": "ADAM Audio GmbH",
-      "location": "High Wycombe, GB",
-      "salary": "Not specified",
-      "description": "A global music technology company based in High Wycombe is seeking a Marketplace Executive/Manager to oversee the operational performance across their marketplaces. This role involves managing compliance, improving efficiency, and collaborating with various teams for a seamless customer experience. Candidates should have proven experience in managing online marketplace operations and demonstrate strong analytical skills. The role offers hybrid working, competitive salary, and excellent benefits.",
-      "url": "https://uk.talent.com/view?id=618304330347848745",
-      "date_posted": "2026-05-05T00:00:00.000Z",
-      "score": 8,
-      "match_reason": "Marketplace operations lead overseeing compliance, efficiency, and seamless vendor experience—directly applicable to Shreya's vendor onboarding, process redesign, and operations optimisation background.",
-      "source": "JSearch"
-    },
-    {
-      "rank": 4,
       "title": "Senior Digital Merchandising Operations Manager",
       "company": "Harnham - Data & Analytics Recruitment",
       "location": "London, GB",
@@ -52,11 +39,11 @@
       "url": "https://www.reed.co.uk/jobs/senior-digital-merchandising-operations-manager/56852358",
       "date_posted": "2026-05-01T00:00:00.000Z",
       "score": 8,
-      "match_reason": "Senior digital merchandising ops role; matches Shreya's catalogue taxonomy, attribute governance, merchandising accuracy, and stakeholder influence expertise from Lowe's.",
+      "match_reason": "Senior Digital Merchandising Operations Manager role directly matches Shreya's catalogue taxonomy, data governance, and digital merchandising operations expertise demonstrated at Lowe's managing 100K+ items.",
       "source": "JSearch"
     },
     {
-      "rank": 5,
+      "rank": 4,
       "title": "Digital Merchandising Operations Manager , EMEA & LATAM - London, United Kingdom",
       "company": "Ralph Lauren",
       "location": "London, GB",
@@ -65,24 +52,24 @@
       "url": "https://uk.jobrapido.com/jobpreview/8119138940792864768",
       "date_posted": "2026-05-04T00:00:00.000Z",
       "score": 8,
-      "match_reason": "Digital merchandising operations managing EMEA & LATAM; aligns with Shreya's catalogue management, data governance, and cross-regional platform operations at scale.",
+      "match_reason": "Digital Merchandising Operations Manager at Ralph Lauren (EMEA & LATAM) leverages Shreya's proven track record in merchandise operations, data accuracy, and cross-functional product collaboration at enterprise scale.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 5,
+      "title": "Marketplace Growth & Ops Lead (Hybrid)",
+      "company": "ADAM Audio GmbH",
+      "location": "High Wycombe, GB",
+      "salary": "Not specified",
+      "description": "A global music technology company based in High Wycombe is seeking a Marketplace Executive/Manager to oversee the operational performance across their marketplaces. This role involves managing compliance, improving efficiency, and collaborating with various teams for a seamless customer experience. Candidates should have proven experience in managing online marketplace operations and demonstrate strong analytical skills. The role offers hybrid working, competitive salary, and excellent benefits.",
+      "url": "https://uk.talent.com/view?id=618304330347848745",
+      "date_posted": "2026-05-05T00:00:00.000Z",
+      "score": 8,
+      "match_reason": "ADAM Audio's Marketplace Growth & Ops Lead role requires operational performance management across marketplaces, efficiency improvements, and cross-team collaboration—core strengths from Shreya's 10K+ partner vendor platform work.",
       "source": "JSearch"
     },
     {
       "rank": 6,
-      "title": "E-Commerce & Marketplace Executive",
-      "company": "Cloving.co.uk",
-      "location": "London, GB",
-      "salary": "Not specified",
-      "description": "Marketplace & Product Listings\n\nAbout Cloving\nCloving.co.uk is a fast-growing, UK-based company. As we continue to scale, we’re looking for organised, detail-oriented individuals to join our team and support the day-to-day operations that keep our business running smoothly.\n\nAbout the Role – E-Commerce & Marketplace Executive\nWe are seeking a proactive and commercially-minded E-commerce Executive to support and expand our online sales operations. This role is ideal for someone who understands on",
-      "url": "https://www.simplyhired.co.uk/job/YH89QklIqtLcqW4E04J4_nNIFB7ziXp57Ex8rVTUFVTu-VnTA0F07Q",
-      "date_posted": "2026-04-13T00:00:00.000Z",
-      "score": 7,
-      "match_reason": "E-commerce & marketplace operations; requires marketplace listing, vendor/seller management, and day-to-day ops—suitable for Shreya's seller activation and platform management background.",
-      "source": "JSearch"
-    },
-    {
-      "rank": 7,
       "title": "Seller Onboarding Assistant",
       "company": "Sainsbury's",
       "location": "London, GB",
@@ -91,24 +78,11 @@
       "url": "https://www.glassdoor.co.uk/job-listing/seller-onboarding-assistant-sainsbury-s-JV_IC2671300_KO0,27_KE28,39.htm?jl=1010121048538",
       "date_posted": "2026-04-30T00:00:00.000Z",
       "score": 7,
-      "match_reason": "Seller onboarding assistant at Sainsbury's/Argos; aligns with Shreya's core expertise in seller onboarding, enablement, training, and end-to-end vendor activation programmes.",
+      "match_reason": "Sainsbury's Seller Onboarding Assistant role at Argos aligns with Shreya's 10+ years in seller/vendor onboarding, activation processes, and marketplace enablement, though junior title suggests potential underutilisation.",
       "source": "JSearch"
     },
     {
-      "rank": 8,
-      "title": "eCommerce Manager | Vendor Manager",
-      "company": "Intelligent People",
-      "location": "London, GB",
-      "salary": "Not specified",
-      "description": "An eCommerce Manager / Vendor Manager / Merchandising Manager needed by a rapidly scaling arts & crafts eCommerce organisation who have seen a 300% growth in the last year!\n\nSalary Package: £50-60k + Benefits\n\nLocation: London (Fully Remote , occasional team meets)\n\nThe eCommerce Manager / Vendor Manager / Merchandising Manager will work across a wide range of Product Development, Marketing and eCommerce focused projects.\n\nThe eCommerce Manager / Vendor Manager / Merchandising Manager will:\n\n– D",
-      "url": "https://www.intelligentpeople.co.uk/job/ecommerce-manager-ja9513-1714056571/",
-      "date_posted": "2026-04-24T00:00:00.000Z",
-      "score": 7,
-      "match_reason": "eCommerce/vendor manager for scaling arts & crafts platform; matches Shreya's vendor management, merchandising, 300% growth context mirrors her 10K+ partner scale-up experience.",
-      "source": "JSearch"
-    },
-    {
-      "rank": 9,
+      "rank": 7,
       "title": "Mid-Market Customer Success Manager (UK)",
       "company": "Global-e",
       "location": "London, GB",
@@ -116,8 +90,34 @@
       "description": "Global-e (Nasdaq: GLBE) is the world’s leading platform to enable and accelerate global, direct-to-consumer cross-border e-commerce growth.\n\nFounded in 2013 and operating from several offices worldwide, Global-e is the chosen partner of hundreds of global retailers and brands, including Hugo Boss, Marc Jacobs, Etam, M&S, Montblanc, Forever 21, Versace, Iconic and more.\n\nWe are looking for an Mid-Market Customer Success Manager who will partner with Global-e and ensure the long-term success of ou",
       "url": "https://uk.indeed.com/viewjob?jk=84879a2da3af8c07",
       "date_posted": "2026-04-17T00:00:00.000Z",
+      "score": 7,
+      "match_reason": "Global-e's Mid-Market Customer Success Manager role fits Shreya's e-commerce SaaS platform expertise and vendor/seller lifecycle management, though CS focus differs slightly from operations leadership background.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 8,
+      "title": "Senior Customer Success Manager - eCommerce / Fashion Tech Start-up",
+      "company": "Urban Digital Recruitment Ltd",
+      "location": "London, GB",
+      "salary": "Not specified",
+      "description": "Senior Customer Success Manager / Customer Success Manager eCommerce Tech | High-Growth Scale-Up\n\nLondon (Hybrid – 2 days/week)\n\nTo £75k + Bonus + Equity The Opportunity\n\nWe’re partnering with a\nhigh-growth, founder-led eCommerce technology business\nredefining how premium and luxury brands engage customers online.\n\nThis is a\nhigh-impact, commercially-led Customer Success role\n, working closely with leadership to shape how Customer Success evolves as the company scales.\n\nYou’ll own a portfolio of",
+      "url": "https://bebee.com/gb/jobs/senior-customer-success-manager-ecommerce-fashion-tech-start-up-urban-digital-recruitment-ltd-greate--theirstack-673070907",
+      "date_posted": "2026-04-28T00:00:00.000Z",
+      "score": 7,
+      "match_reason": "Urban Digital's Senior Customer Success Manager for eCommerce Tech start-up leverages Shreya's e-commerce platform operations and cross-functional collaboration, though CS remit is secondary to ops leadership strength.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 9,
+      "title": "E-Commerce & Marketplace Executive",
+      "company": "Cloving.co.uk",
+      "location": "London, GB",
+      "salary": "Not specified",
+      "description": "Marketplace & Product Listings\n\nAbout Cloving\nCloving.co.uk is a fast-growing, UK-based company. As we continue to scale, we’re looking for organised, detail-oriented individuals to join our team and support the day-to-day operations that keep our business running smoothly.\n\nAbout the Role – E-Commerce & Marketplace Executive\nWe are seeking a proactive and commercially-minded E-commerce Executive to support and expand our online sales operations. This role is ideal for someone who understands on",
+      "url": "https://www.simplyhired.co.uk/job/YH89QklIqtLcqW4E04J4_nNIFB7ziXp57Ex8rVTUFVTu-VnTA0F07Q",
+      "date_posted": "2026-04-13T00:00:00.000Z",
       "score": 6,
-      "match_reason": "Customer success for e-commerce SaaS platform; Shreya's vendor support, SLA management, and platform adoption experience translate well to mid-market customer retention.",
+      "match_reason": "Cloving's E-Commerce & Marketplace Executive role involves product listings and marketplace operations, relevant to Shreya's catalogue governance and vendor operations but less detailed on scope and scale.",
       "source": "JSearch"
     },
     {
@@ -130,7 +130,46 @@
       "url": "https://jobs.ashbyhq.com/motorway/67d7adbc-909b-4f82-9174-15bb2e56aaf2",
       "date_posted": "2026-04-21T00:00:00.000Z",
       "score": 6,
-      "match_reason": "Marketplace trust & operations project; Shreya's vendor compliance, platform governance, and 10K+ partner management experience applicable to used-car marketplace trust/safety.",
+      "match_reason": "Motorway's Project Manager - Marketplace Trust (9m FTC) involves operational marketplace improvements and compliance, tangential to Shreya's vendor operations expertise but fixed-term contract and PM title are misaligned.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 11,
+      "title": "German speaking Customer Success Manager",
+      "company": "Alderson James",
+      "location": "GB",
+      "salary": "Not specified",
+      "description": "We’re working with a market leading global eCommerce platform that powers some of the world’s most iconic brands. This fast growing SaaS company is scaling rapidly and is now looking for German speaking Customer Success Managers to join their team in London (3 days in the office per week).\n\nWhat you’ll be doing\n\nYou’ll sit at the heart of their DACH client base, owning relationships end-to-end and acting as a trusted advisor to some of the biggest brands in eCommerce.\n\n• Own and grow a portfolio",
+      "url": "https://bebee.com/gb/jobs/german-speaking-customer-success-manager-alderson-james-london-area--theirstack-667998888",
+      "date_posted": "2026-04-21T00:00:00.000Z",
+      "score": 6,
+      "match_reason": "German-speaking Customer Success Manager at global eCommerce SaaS platform leverages Shreya's e-commerce platform operations background, though language requirement and CS focus are secondary to her core operations strength.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 12,
+      "title": "Operations Manager – High-Growth Contemporary Fashion Brand",
+      "company": "Bloom Search International",
+      "location": "GB",
+      "salary": "Not specified",
+      "description": "Operations Manager – High-Growth Contemporary Fashion Brand\n\nThis is an opportunity to join a distinctive, founder-led fashion label that sits at the intersection of culture, music, and modern luxury. Known for its bold aesthetic, directional storytelling, and global cult following, the brand has quickly evolved from emerging disruptor to internationally recognised name—worn by influential voices across fashion and entertainment. With a strong DTC presence and growing wholesale footprint, the bu",
+      "url": "https://bebee.com/gb/jobs/operations-manager-high-growth-contemporary-fashion-brand-bloom-search-international-london-area--theirstack-670687602",
+      "date_posted": "2026-04-24T00:00:00.000Z",
+      "score": 6,
+      "match_reason": "Operations Manager at high-growth contemporary fashion brand aligns with Shreya's e-commerce operations leadership and team management experience, though fashion-specific context differs from her marketplace/vendor background.",
+      "source": "JSearch"
+    },
+    {
+      "rank": 13,
+      "title": "Senior Enterprise Customer Success Manager (German speaker)",
+      "company": "Global-e",
+      "location": "London, GB",
+      "salary": "Not specified",
+      "description": "Experteer Overview\nIn this role you will manage a portfolio of UK clients, building trusted advisor relationships with executives and guiding revenue growth through upsell and cross-sell opportunities. You will collaborate with cross-functional Global-e teams to deliver solutions aligned with client needs, provide strategic insights via data and market trends, and ensure successful delivery of projects. You will monitor KPIs, prepare QBRs, and balance hybrid working in a global, fast-paced envir",
+      "url": "https://www.experteer.es/career/view-jobs/senior-enterprise-customer-success-manager-german-speaker-wc2n-london-west-grossbritannien-57471246",
+      "date_posted": "2026-05-07T00:00:00.000Z",
+      "score": 6,
+      "match_reason": "Global-e's Senior Enterprise Customer Success Manager (German speaker) sits at intersection of e-commerce SaaS and client success, though CS/account focus and language requirement diverge from Shreya's core operations specialisation.",
       "source": "JSearch"
     }
   ]
