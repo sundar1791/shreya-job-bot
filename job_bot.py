@@ -223,45 +223,63 @@ def fetch_activejobs_jobs(query: str) -> list[dict]:
 
 
 def fetch_all_jobs() -> list[dict]:
-    """Fire all JSearch and Active Jobs DB requests concurrently and pool results."""
+    """Fetch from JSearch (parallel) then Active Jobs DB (sequential) and pool results."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
 
-    tasks: list[tuple] = []
-    for query in SEARCH_QUERIES:
-        for page in (1, 2, 3):
-            tasks.append(("jsearch", query, page))
-    for query in ACTIVEJOBS_QUERIES:
-        tasks.append(("activejobs", query, None))
-
-    log.info(
-        f"Firing {len(tasks)} requests "
-        f"({len(SEARCH_QUERIES) * 3} JSearch + {len(ACTIVEJOBS_QUERIES)} ActiveJobsDB) concurrently..."
-    )
-
-    def _run(task):
-        kind, query, param = task
-        if kind == "jsearch":
-            return fetch_jsearch_jobs(query, page=param)
-        return fetch_activejobs_jobs(query)
-
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
+    # JSearch: fire all page-1 requests in parallel, then fetch page 2/3 only for
+    # queries that returned results on page 1 (avoids burning requests on dead queries).
+    log.info(f"JSearch: firing {len(SEARCH_QUERIES)} page-1 requests concurrently...")
+    productive_queries: list[str] = []
+
     with ThreadPoolExecutor(max_workers=12) as pool:
-        futures = {pool.submit(_run, t): t for t in tasks}
+        futures = {pool.submit(fetch_jsearch_jobs, q, 1): q for q in SEARCH_QUERIES}
         for future in as_completed(futures):
+            query = futures[future]
             try:
                 jobs = future.result()
             except Exception as e:
-                log.error(f"Task failed: {e}")
+                log.error(f"JSearch task failed: {e}")
                 continue
+            if jobs:
+                productive_queries.append(query)
             new = [j for j in jobs if j["id"] not in seen_ids]
             seen_ids.update(j["id"] for j in new)
             all_jobs.extend(new)
 
-    log.info(f"Total fetched: {len(all_jobs)} unique jobs from both sources")
+    log.info(f"JSearch: {len(productive_queries)}/{len(SEARCH_QUERIES)} queries were productive")
+
+    if productive_queries:
+        deeper_tasks = [(q, p) for q in productive_queries for p in (2, 3)]
+        log.info(f"JSearch: fetching pages 2-3 for {len(productive_queries)} productive queries ({len(deeper_tasks)} requests)...")
+        with ThreadPoolExecutor(max_workers=12) as pool:
+            futures = {pool.submit(fetch_jsearch_jobs, q, p): (q, p) for q, p in deeper_tasks}
+            for future in as_completed(futures):
+                try:
+                    jobs = future.result()
+                except Exception as e:
+                    log.error(f"JSearch task failed: {e}")
+                    continue
+                new = [j for j in jobs if j["id"] not in seen_ids]
+                seen_ids.update(j["id"] for j in new)
+                all_jobs.extend(new)
+
+    jsearch_count = len(all_jobs)
+    log.info(f"JSearch total: {jsearch_count} unique jobs")
+
+    # Active Jobs DB: run sequentially to respect rate limits.
+    log.info(f"ActiveJobsDB: fetching {len(ACTIVEJOBS_QUERIES)} queries sequentially...")
+    for query in ACTIVEJOBS_QUERIES:
+        jobs = fetch_activejobs_jobs(query)
+        new = [j for j in jobs if j["id"] not in seen_ids]
+        seen_ids.update(j["id"] for j in new)
+        all_jobs.extend(new)
+
+    log.info(f"Total fetched: {len(all_jobs)} unique jobs ({jsearch_count} JSearch + {len(all_jobs) - jsearch_count} ActiveJobsDB)")
     return all_jobs
 
 
