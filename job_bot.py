@@ -186,7 +186,7 @@ def fetch_activejobs_jobs(query: str) -> list[dict]:
         "description_type":           "text",
         "ai_employment_type_filter":  "FULL_TIME",
         "ai_experience_level_filter": "2-5,5-10,10+",
-        "ai_taxonomies_a_exclusion_filter": "Logistics,Transportation,Engineering,Software",
+        "ai_taxonomies_a_exclusion_filter": "Logistics,Transportation",
         "offset":                     0,
         "limit":                      100,
     }
@@ -259,16 +259,10 @@ def fetch_all_jobs() -> list[dict]:
     log.info(f"JSearch: {len(productive_queries)}/{len(SEARCH_QUERIES)} queries were productive")
 
     if productive_queries:
-        deeper_tasks = [(q, p) for q in productive_queries for p in (2, 3)]
-        log.info(f"JSearch: fetching pages 2-3 for {len(productive_queries)} productive queries ({len(deeper_tasks)} requests)...")
-        with ThreadPoolExecutor(max_workers=12) as pool:
-            futures = {pool.submit(fetch_jsearch_jobs, q, p): (q, p) for q, p in deeper_tasks}
-            for future in as_completed(futures):
-                try:
-                    jobs = future.result()
-                except Exception as e:
-                    log.error(f"JSearch task failed: {e}")
-                    continue
+        log.info(f"JSearch: fetching pages 2-3 sequentially for {len(productive_queries)} productive queries...")
+        for query in productive_queries:
+            for page in (2, 3):
+                jobs = fetch_jsearch_jobs(query, page=page)
                 new = [j for j in jobs if j["id"] not in seen_ids]
                 seen_ids.update(j["id"] for j in new)
                 all_jobs.extend(new)
@@ -461,10 +455,10 @@ A job scores 7–10 ONLY if it directly involves one or more of:
 
 IMPORTANT: The candidate is a specialist in e-commerce marketplace / vendor / catalogue operations.
 Do NOT give a passing score (≥6) to:
-- Any role in freight, logistics, or physical goods movement, even if titled "Operations Manager"
-- Any "General Manager" role for a logistics, freight, or supply-chain company
-- Any "Product Owner" or "Technical Product Manager" role focused on software delivery
-- Generic "Operations Manager" roles in financial services, consulting, or professional services
+- Any role in freight, logistics, or physical goods movement, even if titled “Operations Manager”
+- Any “General Manager” role for a logistics, freight, or supply-chain company
+- Any “Product Owner” or “Technical Product Manager” role focused on software delivery
+- Generic “Operations Manager” roles in financial services, consulting, or professional services
 
 Below are {len(jobs)} pre-filtered job listings. Select the top {top_n} best matches.
 
@@ -477,7 +471,7 @@ Return ONLY valid JSON — no markdown fences, no extra text:
 }}
 
 Rules:
-- Return AT MOST {top_n} selections. If fewer than {top_n} jobs genuinely score 6 or above, return only those — do NOT pad with weak matches.
+- Return EXACTLY {top_n} selections, ranked by score. Only return fewer if there are genuinely fewer than {top_n} jobs in the input.
 - score 1–10: 10 = direct match on e-commerce/vendor/catalogue ops, 1 = hard disqualifier.
 - Spread scores — do not cluster everything at 7–8. A 9–10 should be rare and only for an almost perfect match.
 - Sort by score descending.
@@ -509,8 +503,7 @@ JOB LISTINGS:
             ranked.append(job)
 
         ranked.sort(key=lambda j: j["score"], reverse=True)
-        ranked = [j for j in ranked if j["score"] >= 6]
-        log.info(f"LLM: {len(ranked)} jobs after score≥6 filter, scores {[j['score'] for j in ranked]}")
+        log.info(f"LLM selected {len(ranked)} jobs, scores {[j['score'] for j in ranked]}")
         return ranked
 
     except Exception as e:
