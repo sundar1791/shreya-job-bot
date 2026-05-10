@@ -2,7 +2,7 @@
 """
 Job Bot for Shreya Anantha Subramaniyam
 Weekly London job scanner via JSearch API + Claude LLM ranking.
-Fetches ~100 jobs, ranks them with Claude, sends an email digest,
+Fetches ~200 jobs, ranks them with Claude, sends an email digest,
 and writes output/jobs.json for the GitHub Pages frontend.
 
 Usage:
@@ -46,8 +46,8 @@ GMAIL_APP_PASS = os.getenv("GMAIL_APP_PASS", "")
 FROM_EMAIL     = os.getenv("FROM_EMAIL", GMAIL_USER)
 TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 
-TARGET_FETCH     = 100
-OUTPUT_JOBS      = 10
+TARGET_FETCH     = 200
+OUTPUT_JOBS      = 20
 OUTPUT_DIR       = os.path.join(os.path.dirname(__file__), "output")
 JSEARCH_BASE     = "https://jsearch.p.rapidapi.com/search"
 JSEARCH_HOST     = "jsearch.p.rapidapi.com"
@@ -284,7 +284,7 @@ JOB LISTINGS:
     try:
         message = client.messages.create(
             model=LLM_MODEL,
-            max_tokens=2048,
+            max_tokens=4096,
             messages=[{"role": "user", "content": prompt}],
         )
         raw = message.content[0].text.strip()
@@ -524,7 +524,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
 
     method_label = "AI-curated" if llm_powered else "keyword-matched"
     screened_note = (
-        "Screened by Claude AI from 100+ listings based on your resume."
+        "Screened by Claude AI from 200+ listings based on your resume."
         if llm_powered else
         "Ranked by keyword matching against your profile."
     )
