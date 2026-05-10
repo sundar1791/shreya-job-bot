@@ -231,8 +231,8 @@ def fetch_all_jobs() -> list[dict]:
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
-    # JSearch: fire all page-1 requests in parallel, then fetch page 2/3 only for
-    # queries that returned results on page 1 (avoids burning requests on dead queries).
+    # JSearch: fire all page-1 requests in parallel, then only fetch pages 2-3
+    # for queries that returned results on page 1 (avoids burning requests on dead queries).
     log.info(f"JSearch: firing {len(SEARCH_QUERIES)} page-1 requests concurrently...")
     productive_queries: list[str] = []
 
