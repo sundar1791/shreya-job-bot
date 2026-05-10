@@ -77,21 +77,21 @@ SEARCH_QUERIES = [
     "marketplace platform manager London",
 ]
 
-# Active Jobs DB — title_filter supports quoted phrases and OR; keep broad for yield.
+# Active Jobs DB — title_filter is Google-like natural language (no AND/OR syntax).
 ACTIVEJOBS_QUERIES = [
-    '"ecommerce" AND "operations"',
-    '"marketplace" AND "operations"',
-    '"vendor" AND "operations"',
-    '"seller" AND "operations"',
-    '"platform operations"',
-    '"catalogue" AND "manager"',
-    '"onboarding" AND "manager"',
-    '"customer success" AND "ecommerce"',
-    '"customer success" AND "marketplace"',
-    '"data governance" AND "manager"',
-    '"merchandising" AND "operations"',
-    '"digital operations" AND "manager"',
-    '"online retail" AND "operations"',
+    "ecommerce operations manager",
+    "marketplace operations manager",
+    "vendor operations manager",
+    "seller operations manager",
+    "platform operations manager",
+    "digital operations manager",
+    "catalogue operations manager",
+    "vendor onboarding manager",
+    "customer success manager ecommerce",
+    "customer success manager marketplace",
+    "data governance manager",
+    "merchandising operations manager",
+    "online retail operations manager",
 ]
 
 
@@ -181,11 +181,14 @@ def fetch_activejobs_jobs(query: str) -> list[dict]:
         log.warning("JSEARCH_API_KEY missing – skipping Active Jobs DB.")
         return []
     params = {
-        "title_filter":     query,
-        "location_filter":  '"London" OR "United Kingdom"',
-        "description_type": "text",
-        "offset":           0,
-        "limit":            100,
+        "title_filter":               query,
+        "location_filter":            "London OR United Kingdom",
+        "description_type":           "text",
+        "ai_employment_type_filter":  "FULL_TIME",
+        "ai_experience_level_filter": "2-5,5-10,10+",
+        "ai_taxonomies_a_exclusion_filter": "Logistics,Transportation,Engineering,Software",
+        "offset":                     0,
+        "limit":                      100,
     }
     headers = {
         "X-RapidAPI-Key":  JSEARCH_API_KEY,
