@@ -57,39 +57,41 @@ ACTIVEJOBS_HOST = "active-jobs-db.p.rapidapi.com"
 
 LLM_MODEL = "claude-sonnet-4-6"
 
-# JSearch — location embedded in query string (Google Jobs aggregator style).
+# JSearch — broader queries get more raw results; LLM filters irrelevant ones.
 SEARCH_QUERIES = [
-    "vendor operations manager ecommerce in London UK",
-    "seller operations manager marketplace in London UK",
-    "e-commerce operations manager in London UK",
-    "marketplace operations manager in London UK",
-    "vendor onboarding manager in London UK",
-    "catalogue operations manager in London UK",
-    "platform operations manager ecommerce in London UK",
-    "seller onboarding operations in London UK",
-    "merchandising operations manager in London UK",
-    "data governance manager ecommerce in London UK",
-    "customer success manager ecommerce in London UK",
-    "customer success manager marketplace in London UK",
-    "partner operations manager ecommerce in London UK",
-    "vendor management ecommerce in London UK",
+    "ecommerce operations manager London",
+    "marketplace operations manager London",
+    "vendor operations manager London",
+    "seller operations manager London",
+    "platform operations manager London",
+    "digital operations manager London",
+    "catalogue manager ecommerce London",
+    "vendor onboarding manager London",
+    "ecommerce operations lead London",
+    "customer success manager ecommerce London",
+    "customer success manager marketplace London",
+    "data governance manager London",
+    "merchandising operations manager London",
+    "partner operations manager London",
+    "online retail operations manager London",
+    "marketplace platform manager London",
 ]
 
-# Active Jobs DB — location passed as a separate param, no suffix needed.
+# Active Jobs DB — title_filter is a keyword search, keep terms broad.
 ACTIVEJOBS_QUERIES = [
-    "vendor operations manager ecommerce",
-    "seller operations manager marketplace",
-    "e-commerce operations manager",
+    "ecommerce operations manager",
     "marketplace operations manager",
-    "vendor onboarding manager",
+    "vendor operations manager",
+    "seller operations manager",
+    "platform operations manager",
+    "digital operations manager",
     "catalogue operations manager",
-    "platform operations manager ecommerce",
-    "data governance manager ecommerce",
+    "vendor onboarding manager",
     "customer success manager ecommerce",
-    "customer success manager marketplace",
+    "data governance manager",
     "merchandising operations manager",
     "partner operations manager",
-    "vendor management ecommerce",
+    "online retail operations manager",
 ]
 
 
