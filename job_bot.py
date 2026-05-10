@@ -51,12 +51,12 @@ OUTPUT_JOBS      = 20
 OUTPUT_DIR       = os.path.join(os.path.dirname(__file__), "output")
 JSEARCH_BASE     = "https://jsearch.p.rapidapi.com/search"
 JSEARCH_HOST     = "jsearch.p.rapidapi.com"
+ACTIVEJOBS_BASE  = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
+ACTIVEJOBS_HOST  = "active-jobs-db.p.rapidapi.com"
 
 LLM_MODEL = "claude-haiku-4-5-20251001"
 
-# Queries tuned specifically to Shreya's background:
-# vendor/seller onboarding, catalogue ops, e-commerce/marketplace platform ops.
-# "in London, UK" is embedded so JSearch (Google Jobs aggregator) targets the right location.
+# Queries for JSearch — location embedded in string (Google Jobs aggregator style).
 SEARCH_QUERIES = [
     "vendor operations manager ecommerce in London UK",
     "seller operations manager marketplace in London UK",
@@ -72,6 +72,23 @@ SEARCH_QUERIES = [
     "customer success manager marketplace in London UK",
     "partner operations manager ecommerce in London UK",
     "vendor management ecommerce in London UK",
+]
+
+# Queries for Active Jobs DB — uses a separate location_filter param so no suffix needed.
+ACTIVEJOBS_QUERIES = [
+    "vendor operations manager ecommerce",
+    "seller operations manager marketplace",
+    "e-commerce operations manager",
+    "marketplace operations manager",
+    "vendor onboarding manager",
+    "catalogue operations manager",
+    "platform operations manager ecommerce",
+    "data governance manager ecommerce",
+    "customer success manager ecommerce",
+    "customer success manager marketplace",
+    "merchandising operations manager",
+    "partner operations manager",
+    "vendor management ecommerce",
 ]
 
 
@@ -157,8 +174,56 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
         return []
 
 
+def fetch_activejobs_jobs(query: str, offset: int = 0, limit: int = 10) -> list[dict]:
+    if not JSEARCH_API_KEY:
+        log.warning("JSEARCH_API_KEY missing – skipping Active Jobs DB.")
+        return []
+
+    params = {
+        "title_filter":     query,
+        "location_filter":  "London",
+        "description_type": "text",
+        "offset":           offset,
+        "limit":            limit,
+    }
+    headers = {
+        "X-RapidAPI-Key":  JSEARCH_API_KEY,
+        "X-RapidAPI-Host": ACTIVEJOBS_HOST,
+    }
+    try:
+        resp = requests.get(ACTIVEJOBS_BASE, params=params, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        raw_jobs = data if isinstance(data, list) else data.get("data", [])
+        jobs = []
+        for j in raw_jobs:
+            url = (j.get("url") or j.get("apply_url") or j.get("job_url")
+                   or j.get("apply_link") or j.get("source_url") or "")
+            uid = j.get("id") or j.get("job_id") or f"{j.get('title','')}{j.get('organization','')}"
+            jobs.append({
+                "source":       "ActiveJobsDB",
+                "id":           f"activejobs_{uid}",
+                "title":        j.get("title", ""),
+                "company":      j.get("organization", "Unknown"),
+                "location":     j.get("location", "London, UK"),
+                "salary_min":   None,
+                "salary_max":   None,
+                "salary_str":   "",
+                "description":  (j.get("description_text") or j.get("description") or "")[:500],
+                "url":          url,
+                "date_posted":  j.get("date_posted", ""),
+                "match_reason": "",
+                "score":        0,
+            })
+        log.info(f"  ActiveJobsDB [{query!r} offset={offset}]: {len(jobs)} jobs")
+        return jobs
+    except requests.RequestException as e:
+        log.error(f"  ActiveJobsDB [{query!r}] error: {e}")
+        return []
+
+
 def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
-    """Cycle through queries (3 pages each) until we have `target` unique jobs."""
+    """Fetch from JSearch then Active Jobs DB until we have `target` unique jobs."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
@@ -166,6 +231,7 @@ def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
+    log.info("--- Phase 1: JSearch ---")
     for query in SEARCH_QUERIES:
         for page in (1, 2, 3):
             jobs = fetch_jsearch_jobs(query, page=page)
@@ -177,6 +243,20 @@ def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
                 break
         if len(all_jobs) >= target:
             break
+
+    if len(all_jobs) < target:
+        log.info("--- Phase 2: Active Jobs DB ---")
+        for query in ACTIVEJOBS_QUERIES:
+            for offset in (0, 10, 20):
+                jobs = fetch_activejobs_jobs(query, offset=offset)
+                new = [j for j in jobs if j["id"] not in seen_ids]
+                seen_ids.update(j["id"] for j in new)
+                all_jobs.extend(new)
+                log.info(f"  Running unique total: {len(all_jobs)}")
+                if len(all_jobs) >= target:
+                    break
+            if len(all_jobs) >= target:
+                break
 
     return all_jobs
 
@@ -566,7 +646,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         <tr>
           <td style="background:#2d2d44;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <p style="margin:0 0 6px 0;color:rgba(255,255,255,0.6);font-size:12px;">
-              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Source: JSearch &nbsp;|&nbsp; London &amp; surrounding areas
+              {"Ranked by Claude AI (Haiku) &nbsp;·&nbsp; " if llm_powered else ""}Sources: JSearch &amp; Active Jobs DB &nbsp;|&nbsp; London &amp; surrounding areas
             </p>
             <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">
               Generated every Monday morning. Always verify directly with the employer.
@@ -622,7 +702,7 @@ def run(test_mode: bool = False):
     resume = load_resume()
     log.info(f"Loaded resume ({len(resume)} chars)")
 
-    log.info(f"Fetching up to {TARGET_FETCH} jobs from JSearch...")
+    log.info(f"Fetching up to {TARGET_FETCH} jobs from JSearch + Active Jobs DB...")
     raw_jobs = fetch_all_jobs(target=TARGET_FETCH)
     log.info(f"Raw fetch: {len(raw_jobs)} jobs")
 
