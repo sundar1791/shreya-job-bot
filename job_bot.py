@@ -118,7 +118,6 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
         "page":        page,
         "num_pages":   1,
         "date_posted": "month",
-        "job_country": "gb",
     }
     headers = {
         "X-RapidAPI-Key":  JSEARCH_API_KEY,
@@ -159,7 +158,7 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
 
 
 def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
-    """Cycle through queries (2 pages each) until we have `target` unique jobs."""
+    """Cycle through queries (3 pages each) until we have `target` unique jobs."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
@@ -168,7 +167,7 @@ def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
     seen_ids: set[str] = set()
 
     for query in SEARCH_QUERIES:
-        for page in (1, 2):
+        for page in (1, 2, 3):
             jobs = fetch_jsearch_jobs(query, page=page)
             new = [j for j in jobs if j["id"] not in seen_ids]
             seen_ids.update(j["id"] for j in new)
