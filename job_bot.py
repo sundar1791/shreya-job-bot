@@ -125,7 +125,7 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
         "X-RapidAPI-Host": JSEARCH_HOST,
     }
     try:
-        resp = requests.get(JSEARCH_BASE, params=params, headers=headers, timeout=15)
+        resp = requests.get(JSEARCH_BASE, params=params, headers=headers, timeout=30)
         resp.raise_for_status()
         raw_jobs = resp.json().get("data", [])
         period = None
@@ -133,7 +133,7 @@ def fetch_jsearch_jobs(query: str, page: int = 1) -> list[dict]:
         for j in raw_jobs:
             period = j.get("job_salary_period")
             location_parts = [p for p in [
-                j.get("job_city"), j.get("job_state"), j.get("job_country", "").upper() or None
+                j.get("job_city"), j.get("job_state"), (j.get("job_country") or "").upper() or None
             ] if p]
             location = ", ".join(location_parts) if location_parts else "London, UK"
             jobs.append({
