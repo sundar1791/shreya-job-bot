@@ -21,10 +21,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
 # ─────────────────────────────────────────────
-# SETUP
+SETUP
 # ─────────────────────────────────────────────
 load_dotenv()
 logging.basicConfig(
@@ -36,7 +37,7 @@ log = logging.getLogger("job_bot")
 
 
 # ─────────────────────────────────────────────
-# CONFIG
+CONFIG
 # ─────────────────────────────────────────────
 JSEARCH_API_KEY   = os.getenv("JSEARCH_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
@@ -46,7 +47,6 @@ GMAIL_APP_PASS = os.getenv("GMAIL_APP_PASS", "")
 FROM_EMAIL     = os.getenv("FROM_EMAIL", GMAIL_USER)
 TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 
-TARGET_FETCH     = 200
 OUTPUT_JOBS      = 20
 OUTPUT_DIR       = os.path.join(os.path.dirname(__file__), "output")
 JSEARCH_BASE     = "https://jsearch.p.rapidapi.com/search"
@@ -93,7 +93,7 @@ ACTIVEJOBS_QUERIES = [
 
 
 # ─────────────────────────────────────────────
-# RESUME
+RESUME
 # ─────────────────────────────────────────────
 def load_resume() -> str:
     resume_path = os.path.join(os.path.dirname(__file__), "resume.txt")
@@ -109,7 +109,7 @@ def load_resume() -> str:
 
 
 # ─────────────────────────────────────────────
-# JSEARCH API
+JSEARCH API
 # ─────────────────────────────────────────────
 def _normalize_salary(raw: float | None, period: str | None) -> float | None:
     """Convert monthly/weekly salary figures to annual for consistent scoring."""
@@ -222,47 +222,50 @@ def fetch_activejobs_jobs(query: str, offset: int = 0, limit: int = 10) -> list[
         return []
 
 
-def fetch_all_jobs(target: int = TARGET_FETCH) -> list[dict]:
-    """Fetch from JSearch then Active Jobs DB until we have `target` unique jobs."""
+def fetch_all_jobs() -> list[dict]:
+    """Fetch from JSearch and Active Jobs DB concurrently and pool all results."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
 
+    # Build task list: (kind, query, param)
+    tasks: list[tuple] = []
+    for query in SEARCH_QUERIES:
+        for page in (1, 2, 3):
+            tasks.append(("jsearch", query, page))
+    for query in ACTIVEJOBS_QUERIES:
+        for offset in (0, 10, 20):
+            tasks.append(("activejobs", query, offset))
+
+    log.info(f"Firing {len(tasks)} requests across JSearch + Active Jobs DB concurrently...")
+
+    def _run(task):
+        kind, query, param = task
+        if kind == "jsearch":
+            return fetch_jsearch_jobs(query, page=param)
+        return fetch_activejobs_jobs(query, offset=param)
+
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
-    log.info("--- Phase 1: JSearch ---")
-    for query in SEARCH_QUERIES:
-        for page in (1, 2, 3):
-            jobs = fetch_jsearch_jobs(query, page=page)
+    with ThreadPoolExecutor(max_workers=12) as pool:
+        futures = {pool.submit(_run, t): t for t in tasks}
+        for future in as_completed(futures):
+            try:
+                jobs = future.result()
+            except Exception as e:
+                log.error(f"Task failed: {e}")
+                continue
             new = [j for j in jobs if j["id"] not in seen_ids]
             seen_ids.update(j["id"] for j in new)
             all_jobs.extend(new)
-            log.info(f"  Running unique total: {len(all_jobs)}")
-            if len(all_jobs) >= target:
-                break
-        if len(all_jobs) >= target:
-            break
 
-    if len(all_jobs) < target:
-        log.info("--- Phase 2: Active Jobs DB ---")
-        for query in ACTIVEJOBS_QUERIES:
-            for offset in (0, 10, 20):
-                jobs = fetch_activejobs_jobs(query, offset=offset)
-                new = [j for j in jobs if j["id"] not in seen_ids]
-                seen_ids.update(j["id"] for j in new)
-                all_jobs.extend(new)
-                log.info(f"  Running unique total: {len(all_jobs)}")
-                if len(all_jobs) >= target:
-                    break
-            if len(all_jobs) >= target:
-                break
-
+    log.info(f"Total fetched: {len(all_jobs)} unique jobs from both sources")
     return all_jobs
 
 
 # ─────────────────────────────────────────────
-# DEDUPLICATION
+DEDUPLICATION
 # ─────────────────────────────────────────────
 def deduplicate(jobs: list[dict]) -> list[dict]:
     seen_urls: set[str] = set()
@@ -283,7 +286,7 @@ def deduplicate(jobs: list[dict]) -> list[dict]:
 
 
 # ─────────────────────────────────────────────
-# LLM RANKING  (primary)
+LLM RANKING  (primary)
 # ─────────────────────────────────────────────
 def llm_rank_jobs(jobs: list[dict], resume: str, top_n: int = OUTPUT_JOBS) -> list[dict] | None:
     """Ask Claude to pick the top `top_n` jobs with 1–10 scores. Returns None on failure."""
@@ -392,7 +395,7 @@ JOB LISTINGS:
 
 
 # ─────────────────────────────────────────────
-# KEYWORD FALLBACK SCORING
+KEYWORD FALLBACK SCORING
 # ─────────────────────────────────────────────
 _POSITIVE = [
     "e-commerce", "ecommerce", "marketplace", "vendor", "seller", "onboarding",
@@ -452,7 +455,7 @@ def keyword_rank_and_select(jobs: list[dict], top_n: int = OUTPUT_JOBS) -> list[
 
 
 # ─────────────────────────────────────────────
-# SALARY FORMATTING
+SALARY FORMATTING
 # ─────────────────────────────────────────────
 def format_salary(job: dict) -> str:
     if job.get("salary_str"):
@@ -468,7 +471,7 @@ def format_salary(job: dict) -> str:
 
 
 # ─────────────────────────────────────────────
-# JSON OUTPUT  (for frontend)
+JSON OUTPUT  (for frontend)
 # ─────────────────────────────────────────────
 def save_jobs_json(jobs: list[dict], week_of: str, llm_powered: bool) -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -500,7 +503,7 @@ def save_jobs_json(jobs: list[dict], week_of: str, llm_powered: bool) -> None:
 
 
 # ─────────────────────────────────────────────
-# EMAIL FORMATTING
+EMAIL FORMATTING
 # ─────────────────────────────────────────────
 def _truncate(text: str, length: int = 220) -> str:
     text = re.sub(r"<[^>]+>", "", text or "")
@@ -578,7 +581,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
                   <table cellpadding="0" cellspacing="0">
                     <tr>
                       <td style="padding-right:20px;color:#555;font-size:13px;">📍 {job['location']}</td>
-                      <td style="color:#555;font-size:13px;">{"💰" if salary_str != "Not specified" else "💼"} {salary_str}</td>
+                      <td style="color:#555;font-size:13px;">{"\U0001f4b0" if salary_str != "Not specified" else "\U0001f4bc"} {salary_str}</td>
                     </tr>
                   </table>
                 </td>
@@ -661,7 +664,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
 
 
 # ─────────────────────────────────────────────
-# EMAIL SENDING
+EMAIL SENDING
 # ─────────────────────────────────────────────
 def send_email(subject: str, html_body: str) -> bool:
     if not GMAIL_USER or not GMAIL_APP_PASS:
@@ -688,7 +691,7 @@ def send_email(subject: str, html_body: str) -> bool:
 
 
 # ─────────────────────────────────────────────
-# MAIN
+MAIN
 # ─────────────────────────────────────────────
 def run(test_mode: bool = False):
     today   = date.today()
@@ -702,8 +705,8 @@ def run(test_mode: bool = False):
     resume = load_resume()
     log.info(f"Loaded resume ({len(resume)} chars)")
 
-    log.info(f"Fetching up to {TARGET_FETCH} jobs from JSearch + Active Jobs DB...")
-    raw_jobs = fetch_all_jobs(target=TARGET_FETCH)
+    log.info("Fetching jobs from JSearch + Active Jobs DB concurrently...")
+    raw_jobs = fetch_all_jobs()
     log.info(f"Raw fetch: {len(raw_jobs)} jobs")
 
     if not raw_jobs:
