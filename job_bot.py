@@ -39,6 +39,7 @@ log = logging.getLogger("job_bot")
 # CONFIG
 # ─────────────────────────────────────────────────────────────────
 JSEARCH_API_KEY   = os.getenv("JSEARCH_API_KEY", "")
+SERPAPI_KEY       = os.getenv("SERPAPI_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
 GMAIL_USER     = os.getenv("GMAIL_USER", "")
@@ -49,6 +50,7 @@ TO_EMAIL       = os.getenv("TO_EMAIL", "shreyaa1693@gmail.com")
 OUTPUT_JOBS      = 20
 PRE_FILTER_TOP_N = 150   # candidates forwarded to LLM after keyword pre-filter
 OUTPUT_DIR       = os.path.join(os.path.dirname(__file__), "output")
+SERPAPI_FALLBACK_THRESHOLD = 20  # trigger SerpAPI only if primary 3 sources yield fewer than this
 
 JSEARCH_BASE    = "https://jsearch.p.rapidapi.com/search"
 JSEARCH_HOST    = "jsearch.p.rapidapi.com"
@@ -56,6 +58,7 @@ ACTIVEJOBS_BASE = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
 ACTIVEJOBS_HOST = "active-jobs-db.p.rapidapi.com"
 LINKEDIN_BASE   = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-7d"
 LINKEDIN_HOST   = "linkedin-job-search-api.p.rapidapi.com"
+SERPAPI_BASE    = "https://serpapi.com/search"
 
 LLM_MODEL = "claude-sonnet-4-6"
 
@@ -103,6 +106,18 @@ ACTIVEJOBS_QUERIES = [
     "data governance manager",
     "merchandising operations manager",
     "online retail operations manager",
+]
+
+# SerpAPI Google Jobs — fallback only, triggered when primary sources fail.
+# Free tier = 250 searches/month. Stops early once enough jobs are collected.
+SERPAPI_QUERIES = [
+    "ecommerce operations manager",
+    "marketplace operations manager",
+    "vendor operations manager",
+    "catalogue manager ecommerce",
+    "merchandising operations manager",
+    "customer success manager ecommerce",
+    "platform operations manager",
 ]
 
 
@@ -289,8 +304,53 @@ def fetch_linkedin_jobs(query: str) -> list[dict]:
         return []
 
 
+def fetch_serpapi_jobs(query: str) -> list[dict]:
+    """Fetch Google Jobs via SerpAPI (~10 results per call). Used as fallback when other sources fail."""
+    if not SERPAPI_KEY:
+        log.warning("SERPAPI_KEY missing – skipping SerpAPI.")
+        return []
+    params = {
+        "engine":   "google_jobs",
+        "q":        query,
+        "location": "London,United Kingdom",
+        "gl":       "uk",
+        "hl":       "en",
+        "api_key":  SERPAPI_KEY,
+    }
+    try:
+        resp = requests.get(SERPAPI_BASE, params=params, timeout=30)
+        resp.raise_for_status()
+        raw_jobs = resp.json().get("jobs_results", []) or []
+        jobs = []
+        for j in raw_jobs:
+            apply_opts = j.get("apply_options") or []
+            url = apply_opts[0].get("link", "") if apply_opts else (j.get("share_link") or "")
+            detected  = j.get("detected_extensions") or {}
+            job_id = j.get("job_id") or f"{j.get('title', '')}{j.get('company_name', '')}"
+            jobs.append({
+                "source":       "SerpAPI",
+                "id":           f"serpapi_{job_id}",
+                "title":        j.get("title", ""),
+                "company":      j.get("company_name", "Unknown"),
+                "location":     j.get("location", "London, UK"),
+                "salary_min":   None,
+                "salary_max":   None,
+                "salary_str":   detected.get("salary", "") or "",
+                "description":  (j.get("description") or "")[:500],
+                "url":          url,
+                "date_posted":  detected.get("posted_at", ""),
+                "match_reason": "",
+                "score":        0,
+            })
+        log.info(f"  SerpAPI [{query!r}]: {len(jobs)} jobs")
+        return jobs
+    except requests.RequestException as e:
+        log.error(f"  SerpAPI [{query!r}] error: {e}")
+        return []
+
+
 def fetch_all_jobs() -> list[dict]:
-    """Fetch from JSearch (parallel page-1 only), Active Jobs DB, and LinkedIn (both sequential)."""
+    """Fetch from JSearch, Active Jobs DB, LinkedIn — falls back to SerpAPI only if those yield too few jobs."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
@@ -339,8 +399,34 @@ def fetch_all_jobs() -> list[dict]:
 
     linkedin_count = len(all_jobs) - jsearch_count - activejobs_count
     log.info(
-        f"Total fetched: {len(all_jobs)} unique jobs "
+        f"Primary sources: {len(all_jobs)} unique jobs "
         f"({jsearch_count} JSearch + {activejobs_count} ActiveJobsDB + {linkedin_count} LinkedIn)"
+    )
+
+    # SerpAPI fallback: only triggers when primary sources yielded too few jobs
+    # (e.g., all rate-limited). Stops early once enough jobs are collected.
+    serpapi_count = 0
+    if len(all_jobs) < SERPAPI_FALLBACK_THRESHOLD and SERPAPI_KEY:
+        log.warning(
+            f"Only {len(all_jobs)} jobs from primary sources "
+            f"(threshold {SERPAPI_FALLBACK_THRESHOLD}) — triggering SerpAPI fallback."
+        )
+        for query in SERPAPI_QUERIES:
+            jobs = fetch_serpapi_jobs(query)
+            new = [j for j in jobs if j["id"] not in seen_ids]
+            seen_ids.update(j["id"] for j in new)
+            all_jobs.extend(new)
+            serpapi_count += len(new)
+            if len(all_jobs) >= 80:  # plenty for LLM ranking; stop burning quota
+                log.info(f"SerpAPI: collected {len(all_jobs)} jobs — stopping early.")
+                break
+    elif not SERPAPI_KEY and len(all_jobs) < SERPAPI_FALLBACK_THRESHOLD:
+        log.warning(f"Only {len(all_jobs)} jobs from primary sources, but SERPAPI_KEY not set — skipping fallback.")
+
+    log.info(
+        f"Total fetched: {len(all_jobs)} unique jobs "
+        f"({jsearch_count} JSearch + {activejobs_count} ActiveJobsDB + "
+        f"{linkedin_count} LinkedIn + {serpapi_count} SerpAPI)"
     )
     return all_jobs
 
@@ -777,7 +863,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         <tr>
           <td style="background:#2d2d44;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <p style="margin:0 0 6px 0;color:rgba(255,255,255,0.6);font-size:12px;">
-              {ai_credit}Sources: JSearch, Active Jobs DB &amp; LinkedIn &nbsp;|&nbsp; London &amp; surrounding areas
+              {ai_credit}Sources: JSearch, Active Jobs DB, LinkedIn &amp; SerpAPI &nbsp;|&nbsp; London &amp; surrounding areas
             </p>
             <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">
               Generated every Monday morning. Always verify directly with the employer.
