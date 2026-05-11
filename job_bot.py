@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Job Bot for Shreya Anantha Subramaniyam
-Weekly London job scanner via JSearch + Active Jobs DB, ranked by Claude Sonnet.
+Weekly London job scanner via JSearch + Active Jobs DB + LinkedIn, ranked by Claude Sonnet.
 Sends an HTML email digest and writes output/jobs.json for the GitHub Pages frontend.
 
 Usage:
@@ -54,27 +54,33 @@ JSEARCH_BASE    = "https://jsearch.p.rapidapi.com/search"
 JSEARCH_HOST    = "jsearch.p.rapidapi.com"
 ACTIVEJOBS_BASE = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
 ACTIVEJOBS_HOST = "active-jobs-db.p.rapidapi.com"
+LINKEDIN_BASE   = "https://linkedin-job-search-api.p.rapidapi.com/active-jl-7d"
+LINKEDIN_HOST   = "linkedin-job-search-api.p.rapidapi.com"
 
 LLM_MODEL = "claude-sonnet-4-6"
 
-# JSearch — broader queries get more raw results; LLM filters irrelevant ones.
+# JSearch — 10 queries, page 1 only (10 req/run × 4 = 40/month; free tier = 200/month).
 SEARCH_QUERIES = [
     "ecommerce operations manager London",
     "marketplace operations manager London",
     "vendor operations manager London",
     "seller operations manager London",
     "platform operations manager London",
-    "digital operations manager London",
     "catalogue manager ecommerce London",
     "vendor onboarding manager London",
-    "ecommerce operations lead London",
     "customer success manager ecommerce London",
-    "customer success manager marketplace London",
     "data governance manager London",
     "merchandising operations manager London",
-    "partner operations manager London",
-    "online retail operations manager London",
-    "marketplace platform manager London",
+]
+
+# LinkedIn — 5 broad OR queries (5 req/run × 4 = 20/month; free tier = 25/month).
+# Uses advanced_title_filter with OR syntax for maximum yield per request.
+LINKEDIN_QUERIES = [
+    '"ecommerce operations" OR "marketplace operations" OR "platform operations"',
+    '"vendor operations" OR "seller operations" OR "vendor onboarding"',
+    '"catalogue manager" OR "merchandising operations" OR "data governance"',
+    '"customer success" OR "partner operations" OR "digital operations"',
+    '"online retail operations" OR "marketplace platform" OR "ecommerce lead"',
 ]
 
 # Active Jobs DB — title_filter is Google-like natural language (no AND/OR syntax).
@@ -227,8 +233,59 @@ def fetch_activejobs_jobs(query: str) -> list[dict]:
         return []
 
 
+def fetch_linkedin_jobs(query: str) -> list[dict]:
+    """Fetch up to 100 LinkedIn jobs (exclude ATS duplicates already in Active Jobs DB)."""
+    if not JSEARCH_API_KEY:
+        log.warning("JSEARCH_API_KEY missing – skipping LinkedIn.")
+        return []
+    params = {
+        "advanced_title_filter": query,
+        "location_filter":       "London OR United Kingdom",
+        "type_filter":           "FULL_TIME",
+        "seniority_filter":      "Mid-Senior level,Associate,Director",
+        "description_type":      "text",
+        "exclude_ats_duplicate": "true",
+        "offset":                0,
+        "limit":                 100,
+    }
+    headers = {
+        "X-RapidAPI-Key":  JSEARCH_API_KEY,
+        "X-RapidAPI-Host": LINKEDIN_HOST,
+    }
+    try:
+        resp = requests.get(LINKEDIN_BASE, params=params, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        raw_jobs = data if isinstance(data, list) else data.get("data", [])
+        jobs = []
+        for j in raw_jobs:
+            locs = j.get("locations_derived") or []
+            location = locs[0] if isinstance(locs, list) and locs else j.get("location", "London, UK")
+            salary_raw = j.get("salary_raw") or ""
+            jobs.append({
+                "source":       "LinkedIn",
+                "id":           f"linkedin_{j.get('id') or j.get('job_id') or j.get('url', '')}",
+                "title":        j.get("title", ""),
+                "company":      j.get("organization", "Unknown"),
+                "location":     location,
+                "salary_min":   None,
+                "salary_max":   None,
+                "salary_str":   str(salary_raw) if salary_raw else "",
+                "description":  (j.get("description_text") or j.get("description") or "")[:500],
+                "url":          j.get("url", ""),
+                "date_posted":  j.get("date_posted", ""),
+                "match_reason": "",
+                "score":        0,
+            })
+        log.info(f"  LinkedIn [{query[:60]!r}]: {len(jobs)} jobs")
+        return jobs
+    except requests.RequestException as e:
+        log.error(f"  LinkedIn [{query[:60]!r}] error: {e}")
+        return []
+
+
 def fetch_all_jobs() -> list[dict]:
-    """Fetch from JSearch (parallel) then Active Jobs DB (sequential) and pool results."""
+    """Fetch from JSearch (parallel page-1 only), Active Jobs DB, and LinkedIn (both sequential)."""
     if not JSEARCH_API_KEY:
         log.error("JSEARCH_API_KEY not set.")
         return []
@@ -236,12 +293,11 @@ def fetch_all_jobs() -> list[dict]:
     all_jobs: list[dict] = []
     seen_ids: set[str] = set()
 
-    # JSearch: fire all page-1 requests in parallel, then only fetch pages 2-3
-    # for queries that returned results on page 1 (avoids burning requests on dead queries).
+    # JSearch: page 1 only for all queries, fired concurrently.
+    # Pages 2-3 skipped — they rarely add unique results and burn monthly quota.
     log.info(f"JSearch: firing {len(SEARCH_QUERIES)} page-1 requests concurrently...")
-    productive_queries: list[str] = []
 
-    with ThreadPoolExecutor(max_workers=12) as pool:
+    with ThreadPoolExecutor(max_workers=10) as pool:
         futures = {pool.submit(fetch_jsearch_jobs, q, 1): q for q in SEARCH_QUERIES}
         for future in as_completed(futures):
             query = futures[future]
@@ -250,27 +306,14 @@ def fetch_all_jobs() -> list[dict]:
             except Exception as e:
                 log.error(f"JSearch task failed: {e}")
                 continue
-            if jobs:
-                productive_queries.append(query)
             new = [j for j in jobs if j["id"] not in seen_ids]
             seen_ids.update(j["id"] for j in new)
             all_jobs.extend(new)
 
-    log.info(f"JSearch: {len(productive_queries)}/{len(SEARCH_QUERIES)} queries were productive")
-
-    if productive_queries:
-        log.info(f"JSearch: fetching pages 2-3 sequentially for {len(productive_queries)} productive queries...")
-        for query in productive_queries:
-            for page in (2, 3):
-                jobs = fetch_jsearch_jobs(query, page=page)
-                new = [j for j in jobs if j["id"] not in seen_ids]
-                seen_ids.update(j["id"] for j in new)
-                all_jobs.extend(new)
-
     jsearch_count = len(all_jobs)
     log.info(f"JSearch total: {jsearch_count} unique jobs")
 
-    # Active Jobs DB: run sequentially to respect rate limits.
+    # Active Jobs DB: sequential to respect rate limits.
     log.info(f"ActiveJobsDB: fetching {len(ACTIVEJOBS_QUERIES)} queries sequentially...")
     for query in ACTIVEJOBS_QUERIES:
         jobs = fetch_activejobs_jobs(query)
@@ -278,7 +321,22 @@ def fetch_all_jobs() -> list[dict]:
         seen_ids.update(j["id"] for j in new)
         all_jobs.extend(new)
 
-    log.info(f"Total fetched: {len(all_jobs)} unique jobs ({jsearch_count} JSearch + {len(all_jobs) - jsearch_count} ActiveJobsDB)")
+    activejobs_count = len(all_jobs) - jsearch_count
+    log.info(f"ActiveJobsDB total: {activejobs_count} unique new jobs")
+
+    # LinkedIn: sequential to respect rate limits.
+    log.info(f"LinkedIn: fetching {len(LINKEDIN_QUERIES)} queries sequentially...")
+    for query in LINKEDIN_QUERIES:
+        jobs = fetch_linkedin_jobs(query)
+        new = [j for j in jobs if j["id"] not in seen_ids]
+        seen_ids.update(j["id"] for j in new)
+        all_jobs.extend(new)
+
+    linkedin_count = len(all_jobs) - jsearch_count - activejobs_count
+    log.info(
+        f"Total fetched: {len(all_jobs)} unique jobs "
+        f"({jsearch_count} JSearch + {activejobs_count} ActiveJobsDB + {linkedin_count} LinkedIn)"
+    )
     return all_jobs
 
 
@@ -714,7 +772,7 @@ def build_html_email(jobs: list[dict], week_of: str, llm_powered: bool = True) -
         <tr>
           <td style="background:#2d2d44;border-radius:0 0 12px 12px;padding:24px 32px;text-align:center;">
             <p style="margin:0 0 6px 0;color:rgba(255,255,255,0.6);font-size:12px;">
-              {ai_credit}Sources: JSearch &amp; Active Jobs DB &nbsp;|&nbsp; London &amp; surrounding areas
+              {ai_credit}Sources: JSearch, Active Jobs DB &amp; LinkedIn &nbsp;|&nbsp; London &amp; surrounding areas
             </p>
             <p style="margin:0;color:rgba(255,255,255,0.4);font-size:11px;">
               Generated every Monday morning. Always verify directly with the employer.
@@ -770,7 +828,7 @@ def run(test_mode: bool = False):
     resume = load_resume()
     log.info(f"Loaded resume ({len(resume)} chars)")
 
-    log.info("Fetching jobs from JSearch + Active Jobs DB concurrently...")
+    log.info("Fetching jobs from JSearch + Active Jobs DB + LinkedIn...")
     raw_jobs = fetch_all_jobs()
     log.info(f"Raw fetch: {len(raw_jobs)} jobs")
 
