@@ -54,7 +54,7 @@ JSEARCH_BASE    = "https://jsearch.p.rapidapi.com/search"
 JSEARCH_HOST    = "jsearch.p.rapidapi.com"
 ACTIVEJOBS_BASE = "https://active-jobs-db.p.rapidapi.com/active-ats-7d"
 ACTIVEJOBS_HOST = "active-jobs-db.p.rapidapi.com"
-LINKEDIN_BASE   = "https://linkedin-job-search-api.p.rapidapi.com/active-jl-7d"
+LINKEDIN_BASE   = "https://linkedin-job-search-api.p.rapidapi.com/active-jb-7d"
 LINKEDIN_HOST   = "linkedin-job-search-api.p.rapidapi.com"
 
 LLM_MODEL = "claude-sonnet-4-6"
@@ -73,14 +73,15 @@ SEARCH_QUERIES = [
     "merchandising operations manager London",
 ]
 
-# LinkedIn — 5 broad OR queries (5 req/run × 4 = 20/month; free tier = 25/month).
-# Uses advanced_title_filter with OR syntax for maximum yield per request.
+# LinkedIn — 5 broad queries (5 req/run × 4 = 20/month; free tier = 25/month).
+# advanced_title_filter uses PostgreSQL operators: | (OR), & (AND), ! (NOT),
+# single-quoted phrases (two+ words), :* (prefix wildcard).
 LINKEDIN_QUERIES = [
-    '"ecommerce operations" OR "marketplace operations" OR "platform operations"',
-    '"vendor operations" OR "seller operations" OR "vendor onboarding"',
-    '"catalogue manager" OR "merchandising operations" OR "data governance"',
-    '"customer success" OR "partner operations" OR "digital operations"',
-    '"online retail operations" OR "marketplace platform" OR "ecommerce lead"',
+    "'ecommerce operations' | 'marketplace operations' | 'platform operations'",
+    "'vendor operations' | 'seller operations' | 'vendor onboarding'",
+    "'catalogue manager' | 'merchandising operations' | 'data governance'",
+    "'customer success' | 'partner operations' | 'digital operations'",
+    "'online retail operations' | 'marketplace platform' | ecommerce",
 ]
 
 # Active Jobs DB — title_filter is Google-like natural language (no AND/OR syntax).
