@@ -73,15 +73,19 @@ SEARCH_QUERIES = [
     "merchandising operations manager London",
 ]
 
-# LinkedIn — 5 broad queries (5 req/run × 4 = 20/month; free tier = 25/month).
-# advanced_title_filter uses PostgreSQL operators: | (OR), & (AND), ! (NOT),
-# single-quoted phrases (two+ words), :* (prefix wildcard).
+# LinkedIn — 4 queries, limit=15 each (max 60 jobs/run × 4 = 240/month; free tier = 250 jobs + 25 req/month).
+# Uses advanced_title_filter PostgreSQL operators: & (AND), | (OR), ! (NOT),
+# single-quoted phrases (exact order), :* (prefix wildcard matches manager/management/managing).
+# Unquoted single words match anywhere in the title; avoid rare multi-word phrases as standalone filters.
 LINKEDIN_QUERIES = [
-    "'ecommerce operations' | 'marketplace operations' | 'platform operations'",
-    "'vendor operations' | 'seller operations' | 'vendor onboarding'",
-    "'catalogue manager' | 'merchandising operations' | 'data governance'",
-    "'customer success' | 'partner operations' | 'digital operations'",
-    "'online retail operations' | 'marketplace platform' | ecommerce",
+    # Core ecommerce / marketplace / vendor operations roles
+    "(ecommerce | 'e-commerce' | marketplace | vendor | seller | partner) & (operations | onboarding | manag:*)",
+    # Catalogue / merchandising / data governance / data quality
+    "(catalogue | catalog | merchandising | taxonomy | 'data governance' | 'data quality') & (manag:* | lead | head)",
+    # Customer success scoped to ecommerce / marketplace platforms
+    "'customer success' & (ecommerce | 'e-commerce' | marketplace | platform | retail | digital)",
+    # Platform / digital / online retail operations management
+    "(platform | digital | 'online retail') & operations & (manag:* | lead | head)",
 ]
 
 # Active Jobs DB — title_filter is Google-like natural language (no AND/OR syntax).
@@ -235,7 +239,7 @@ def fetch_activejobs_jobs(query: str) -> list[dict]:
 
 
 def fetch_linkedin_jobs(query: str) -> list[dict]:
-    """Fetch up to 100 LinkedIn jobs (exclude ATS duplicates already in Active Jobs DB)."""
+    """Fetch up to 15 LinkedIn jobs per query (4 queries × 15 = 60 jobs/run max; budget-safe)."""
     if not JSEARCH_API_KEY:
         log.warning("JSEARCH_API_KEY missing – skipping LinkedIn.")
         return []
@@ -247,7 +251,7 @@ def fetch_linkedin_jobs(query: str) -> list[dict]:
         "description_type":      "text",
         "exclude_ats_duplicate": "true",
         "offset":                0,
-        "limit":                 100,
+        "limit":                 15,
     }
     headers = {
         "X-RapidAPI-Key":  JSEARCH_API_KEY,
