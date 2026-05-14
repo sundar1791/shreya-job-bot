@@ -1,0 +1,72 @@
+name: Career Ops — Evaluate Job
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_url:
+        description: "Job posting URL to evaluate"
+        required: false
+        default: ""
+      job_text:
+        description: "Paste job description text (alternative to URL)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch latest so we don't overwrite concurrent updates
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: python -m playwright install chromium --with-deps
+
+      - name: Run evaluation
+        env:
+          JOB_URL: ${{ github.event.inputs.job_url }}
+          JOB_TEXT: ${{ github.event.inputs.job_text }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python career_ops_evaluate.py
+
+      - name: Commit results
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "Career Ops Bot"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git add output/latest_evaluation.json output/applications.json data/applications.json
+          git diff --staged --quiet || git commit -m "chore: evaluation $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin ${{ github.ref_name }}
+
+      - name: Redeploy GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          keep_files: false
+          commit_message: "chore: redeploy after evaluation ${{ github.run_id }}"
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-evaluation
+          path: output/
+          if-no-files-found: ignore

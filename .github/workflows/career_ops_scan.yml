@@ -1,0 +1,66 @@
+name: Career Ops — Portal Scanner
+
+on:
+  # Runs alongside the weekly job bot every Monday at 8 AM UTC
+  schedule:
+    - cron: "0 8 * * 1"
+
+  # On-demand: triggered from the web UI via the Cloudflare Worker
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: python -m playwright install chromium --with-deps
+
+      - name: Run portal scanner
+        env:
+          JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: python career_ops_scan.py
+
+      - name: Commit results
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "Career Ops Bot"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git add output/scan_results.json data/scan_history.json
+          git diff --staged --quiet || git commit -m "chore: portal scan $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push origin ${{ github.ref_name }}
+
+      - name: Redeploy GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          keep_files: false
+          commit_message: "chore: redeploy after scan ${{ github.run_id }}"
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-scan
+          path: output/
+          if-no-files-found: ignore
