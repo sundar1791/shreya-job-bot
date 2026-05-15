@@ -1,0 +1,161 @@
+# Career Ops — London E-commerce Portal Configuration
+# Scanner targets for Shreya's job search (ops/vendor/catalogue/platform roles)
+
+title_filter:
+  include:
+    - operations
+    - vendor
+    - seller
+    - catalogue
+    - catalog
+    - platform
+    - marketplace
+    - onboarding
+    - merchandising
+    - e-commerce
+    - ecommerce
+    - content ops
+    - partner
+    - data governance
+  exclude:
+    - junior
+    - graduate
+    - intern
+    - apprentice
+    - engineer
+    - developer
+    - software
+    - data scientist
+    - data analyst
+    - machine learning
+    - finance
+    - accounting
+    - financial
+    - hr
+    - human resources
+    - recruiter
+    - talent
+    - sales
+    - account manager
+    - business development
+    - logistics
+    - supply chain
+    - warehouse
+    - driver
+    - delivery
+    - demand planning
+    - forecasting
+
+location_filter:
+  include:
+    - london
+    - hybrid
+    - remote
+    - uk
+    - united kingdom
+    - greater london
+
+companies:
+  # ── Greenhouse ATS ──────────────────────────────────────────────
+  - name: ASOS
+    career_url: https://jobs.asos.com
+    ats: greenhouse
+    greenhouse_id: asos
+
+  - name: Wayfair
+    career_url: https://www.wayfair.com/careers
+    ats: greenhouse
+    greenhouse_id: wayfair
+
+  - name: eBay UK
+    career_url: https://jobs.ebayinc.com
+    ats: greenhouse
+    greenhouse_id: ebay
+
+  - name: Etsy
+    career_url: https://careers.etsy.com
+    ats: greenhouse
+    greenhouse_id: etsy
+
+  - name: Depop
+    career_url: https://www.depop.com/careers
+    ats: greenhouse
+    greenhouse_id: depop
+
+  - name: Moonpig
+    career_url: https://www.moonpig.com/uk/careers
+    ats: greenhouse
+    greenhouse_id: moonpig
+
+  - name: Gousto
+    career_url: https://www.gousto.co.uk/careers
+    ats: greenhouse
+    greenhouse_id: gousto
+
+  - name: Deliveroo
+    career_url: https://careers.deliveroo.co.uk
+    ats: greenhouse
+    greenhouse_id: deliveroo
+
+  - name: Auto Trader UK
+    career_url: https://careers.autotrader.co.uk
+    ats: greenhouse
+    greenhouse_id: autotrader
+
+  - name: Zoopla
+    career_url: https://www.zoopla.co.uk/about/careers
+    ats: greenhouse
+    greenhouse_id: zoopla
+
+  # ── Ashby ATS ───────────────────────────────────────────────────
+  - name: Gymshark
+    career_url: https://jobs.ashbyhq.com/gymshark
+    ats: ashby
+    ashby_id: gymshark
+
+  # ── Lever ATS ───────────────────────────────────────────────────
+  - name: Farfetch
+    career_url: https://www.farfetch.com/uk/careers
+    ats: lever
+    lever_id: farfetch
+
+  - name: Vinted
+    career_url: https://www.vinted.com/careers
+    ats: lever
+    lever_id: vinted
+
+  # ── JSearch fallback (for companies without structured ATS APIs) ─
+  - name: Ocado
+    career_url: https://careers.ocado.com
+    ats: jsearch
+    jsearch_query: "Ocado operations London"
+
+  - name: THG (The Hut Group)
+    career_url: https://www.thg.com/careers
+    ats: jsearch
+    jsearch_query: "The Hut Group THG operations ecommerce London"
+
+  - name: Not On The High Street
+    career_url: https://www.notonthehighstreet.com/us/careers
+    ats: jsearch
+    jsearch_query: "Not On The High Street operations marketplace London"
+
+  - name: Marks & Spencer
+    career_url: https://jobs.marksandspencer.com
+    ats: jsearch
+    jsearch_query: "Marks Spencer ecommerce digital operations London"
+
+  - name: John Lewis Partnership
+    career_url: https://www.jlpjobs.com
+    ats: jsearch
+    jsearch_query: "John Lewis Partnership operations ecommerce London"
+
+  - name: Zalando
+    career_url: https://jobs.zalando.com
+    ats: jsearch
+    jsearch_query: "Zalando operations marketplace platform London"
+
+  - name: Boots UK
+    career_url: https://jobs.boots.com
+    ats: jsearch
+    jsearch_query: "Boots UK ecommerce digital operations London"
