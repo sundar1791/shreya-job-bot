@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Shreya's Job Digest</title>
+  <title>Shreya's Job Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -17,19 +17,50 @@
     /* ── Header ── */
     .header {
       background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      padding: 40px 24px 32px;
+      padding: 32px 24px 0;
       text-align: center;
       color: #fff;
     }
-    .header-icon { font-size: 40px; margin-bottom: 10px; }
-    .header h1  { font-size: clamp(22px, 4vw, 30px); font-weight: 700; letter-spacing: -0.5px; }
+    .header-icon { font-size: 36px; margin-bottom: 8px; }
+    .header h1  { font-size: clamp(20px, 4vw, 28px); font-weight: 700; letter-spacing: -0.5px; }
     .header .sub {
-      margin-top: 8px; font-size: 15px;
+      margin-top: 6px; font-size: 14px;
       color: rgba(255,255,255,0.82);
     }
-    .header .meta { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.6); }
+    .header .meta { margin-top: 4px; font-size: 12px; color: rgba(255,255,255,0.6); }
 
-    /* ── Controls bar ── */
+    /* ── Tab bar ── */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-top: 20px;
+      justify-content: center;
+    }
+    .tab-btn {
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.75);
+      transition: background .15s, color .15s;
+    }
+    .tab-btn.active {
+      background: #fff;
+      color: #4f46e5;
+    }
+    .tab-btn:hover:not(.active) {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+
+    /* ── Tab panels ── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Controls bar (job digest) ── */
     .controls {
       background: #fff;
       border-bottom: 1px solid #e5e7eb;
@@ -56,7 +87,7 @@
       padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;
     }
 
-    /* ── Grid ── */
+    /* ── Grid (job digest) ── */
     .grid {
       max-width: 900px;
       margin: 28px auto;
@@ -137,10 +168,7 @@
     }
     .match-reason strong { font-weight: 700; }
 
-    .card-footer {
-      margin-top: auto;
-      padding: 0 18px 18px;
-    }
+    .card-footer { margin-top: auto; padding: 0 18px 18px; }
     .apply-btn {
       display: inline-block;
       background: #4f46e5;
@@ -154,6 +182,376 @@
     }
     .apply-btn:hover { background: #4338ca; }
 
+    /* ── Career Ops panel ── */
+    .co-panel {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 28px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .co-section {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .co-section-header {
+      background: #f8f7ff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .co-section-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+    .co-section-header .section-icon { font-size: 18px; }
+    .co-section-body { padding: 20px; }
+
+    /* Evaluate section */
+    .evaluate-input {
+      width: 100%;
+      min-height: 80px;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      background: #fafafa;
+      color: #1a1a2e;
+      transition: border-color .15s;
+    }
+    .evaluate-input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      background: #fff;
+    }
+    .evaluate-input::placeholder { color: #9ca3af; }
+
+    .evaluate-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-primary:hover:not(:disabled) { background: #4338ca; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-outline {
+      background: #fff;
+      color: #4f46e5;
+      border: 1.5px solid #4f46e5;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-outline:hover:not(:disabled) { background: #ede9fe; }
+    .btn-outline:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .eval-status {
+      font-size: 13px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .eval-status.processing { color: #7c3aed; }
+    .eval-status.done { color: #16a34a; }
+    .eval-status.error { color: #dc2626; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #c4b5fd;
+      border-top-color: #7c3aed;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    /* Evaluation result */
+    .eval-result { display: none; }
+    .eval-result.visible { display: block; }
+
+    .eval-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .eval-title-group { flex: 1; min-width: 200px; }
+    .eval-company { font-size: 13px; font-weight: 600; color: #4f46e5; margin-bottom: 2px; }
+    .eval-role { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
+    .eval-archetype {
+      display: inline-block;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .eval-score-block {
+      text-align: center;
+      min-width: 100px;
+    }
+    .eval-score-number {
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1;
+      color: #4f46e5;
+    }
+    .eval-score-label { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .eval-score-dots { font-size: 18px; margin-top: 4px; letter-spacing: 2px; }
+
+    .eval-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legitimacy-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .legitimacy-high { background: #dcfce7; color: #166534; }
+    .legitimacy-caution { background: #fef9c3; color: #854d0e; }
+    .legitimacy-suspicious { background: #fee2e2; color: #991b1b; }
+
+    .recommendation-banner {
+      background: #f0fdf4;
+      border-left: 4px solid #22c55e;
+      border-radius: 0 8px 8px 0;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #166534;
+      margin-bottom: 16px;
+    }
+    .recommendation-banner.mid { background: #fffbeb; border-color: #f59e0b; color: #92400e; }
+    .recommendation-banner.low { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+
+    /* Accordion blocks */
+    .block-accordion { display: flex; flex-direction: column; gap: 6px; }
+
+    .block-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .block-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: #f9fafb;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      transition: background .12s;
+    }
+    .block-toggle:hover { background: #f3f4f6; }
+    .block-toggle .block-label { flex: 1; }
+    .block-toggle .block-score {
+      font-size: 12px;
+      font-weight: 700;
+      color: #4f46e5;
+      background: #ede9fe;
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .block-toggle .chevron {
+      font-size: 12px;
+      color: #9ca3af;
+      transition: transform .2s;
+    }
+    .block-item.open .chevron { transform: rotate(180deg); }
+
+    .block-content {
+      display: none;
+      padding: 14px;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.7;
+      border-top: 1px solid #e5e7eb;
+    }
+    .block-item.open .block-content { display: block; }
+
+    /* Match table inside block B */
+    .match-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+    .match-table th {
+      text-align: left; padding: 6px 8px;
+      background: #f3f4f6; color: #6b7280;
+      font-weight: 600; border-bottom: 1px solid #e5e7eb;
+    }
+    .match-table td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+
+    .gap-list { margin-top: 10px; }
+    .gap-item {
+      display: flex; gap: 8px; align-items: flex-start;
+      padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px;
+    }
+    .gap-tag {
+      flex-shrink: 0;
+      padding: 1px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .gap-tag.blocker { background: #fee2e2; color: #991b1b; }
+    .gap-tag.nicetohave { background: #fef9c3; color: #854d0e; }
+
+    .eval-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Applications tracker */
+    .tracker-stats {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .stat-chip {
+      background: #f3f4f6;
+      border-radius: 8px;
+      padding: 8px 14px;
+      text-align: center;
+      min-width: 80px;
+    }
+    .stat-chip .stat-val { font-size: 22px; font-weight: 800; color: #4f46e5; }
+    .stat-chip .stat-lbl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+    .tracker-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .tracker-table th {
+      text-align: left; padding: 8px 10px;
+      background: #f8f7ff; color: #6b7280;
+      font-weight: 600; border-bottom: 2px solid #e5e7eb;
+    }
+    .tracker-table td { padding: 10px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    .tracker-table tr:last-child td { border-bottom: none; }
+    .tracker-table tr:hover td { background: #fafafa; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .status-evaluated  { background: #dbeafe; color: #1e40af; }
+    .status-applied    { background: #fef9c3; color: #854d0e; }
+    .status-interview  { background: #dcfce7; color: #166534; }
+    .status-offer      { background: #d1fae5; color: #065f46; }
+    .status-rejected   { background: #fee2e2; color: #991b1b; }
+
+    .score-pip {
+      display: inline-flex;
+      gap: 2px;
+      align-items: center;
+    }
+    .pip {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #e5e7eb;
+    }
+    .pip.filled { background: #4f46e5; }
+
+    /* Scanner section */
+    .scan-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .scan-info { font-size: 13px; color: #6b7280; flex: 1; }
+    .scan-info strong { color: #1a1a2e; }
+
+    .scan-status {
+      font-size: 13px;
+      color: #6b7280;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .scan-status.processing { color: #7c3aed; }
+
+    .job-list { display: flex; flex-direction: column; gap: 6px; }
+    .job-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      transition: border-color .12s;
+    }
+    .job-row:hover { border-color: #a5b4fc; background: #f5f3ff; }
+    .job-row-info { flex: 1; min-width: 0; }
+    .job-row-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a2e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .job-row-meta { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .job-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .btn-sm {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background .12s;
+    }
+    .btn-sm-primary { background: #4f46e5; color: #fff; }
+    .btn-sm-primary:hover { background: #4338ca; }
+    .btn-sm-outline { background: #fff; color: #4f46e5; border: 1.5px solid #c7d2fe; }
+    .btn-sm-outline:hover { background: #ede9fe; }
+
     /* ── Empty / Error states ── */
     .empty {
       grid-column: 1 / -1;
@@ -164,6 +562,14 @@
     .empty .emoji { font-size: 48px; display: block; margin-bottom: 12px; }
     .empty p { font-size: 15px; }
 
+    .co-empty {
+      text-align: center;
+      padding: 36px 20px;
+      color: #9ca3af;
+    }
+    .co-empty .emoji { font-size: 36px; display: block; margin-bottom: 10px; }
+    .co-empty p { font-size: 14px; }
+
     /* ── Footer ── */
     .footer {
       text-align: center;
@@ -173,10 +579,12 @@
       border-top: 1px solid #e5e7eb;
     }
 
-    @media (max-width: 500px) {
+    @media (max-width: 560px) {
       .grid { grid-template-columns: 1fr; }
       .controls { flex-direction: column; align-items: flex-start; }
       .count-badge { margin-left: 0; }
+      .eval-header { flex-direction: column; }
+      .tab-btn { padding: 10px 16px; font-size: 13px; }
     }
   </style>
 </head>
@@ -184,39 +592,161 @@
 
 <div class="header">
   <div class="header-icon">🔍</div>
-  <h1>Shreya's London Job Digest</h1>
+  <h1>Shreya's Job Dashboard</h1>
   <p class="sub" id="weekLabel">Loading…</p>
   <p class="meta" id="metaLabel"></p>
-</div>
 
-<div class="controls">
-  <div class="filter-group">
-    <label for="sortSelect">Sort by</label>
-    <select id="sortSelect">
-      <option value="score">Score (highest first)</option>
-      <option value="date">Date posted (newest first)</option>
-    </select>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('digest', this)">Job Digest</button>
+    <button class="tab-btn" onclick="switchTab('career-ops', this)">Career Ops</button>
   </div>
-  <div class="filter-group">
-    <label for="minScore">Min score: <span id="scoreVal">1</span></label>
-    <input type="range" id="minScore" min="1" max="10" value="1" step="1" style="width:100px;" />
+</div>
+
+<!-- ══ TAB: JOB DIGEST ══════════════════════════════════════════════════════ -->
+<div id="tab-digest" class="tab-panel active">
+  <div class="controls">
+    <div class="filter-group">
+      <label for="sortSelect">Sort by</label>
+      <select id="sortSelect">
+        <option value="score">Score (highest first)</option>
+        <option value="date">Date posted (newest first)</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="minScore">Min score: <span id="scoreVal">1</span></label>
+      <input type="range" id="minScore" min="1" max="10" value="1" step="1" style="width:100px;" />
+    </div>
+    <span class="count-badge" id="countBadge">— roles</span>
   </div>
-  <span class="count-badge" id="countBadge">— roles</span>
+
+  <div class="grid" id="jobGrid">
+    <div class="empty"><span class="emoji">⏳</span><p>Loading jobs…</p></div>
+  </div>
 </div>
 
-<div class="grid" id="jobGrid">
-  <div class="empty"><span class="emoji">⏳</span><p>Loading jobs…</p></div>
+<!-- ══ TAB: CAREER OPS ══════════════════════════════════════════════════════ -->
+<div id="tab-career-ops" class="tab-panel">
+  <div class="co-panel">
+
+    <!-- Section 1: Evaluate a Job -->
+    <div class="co-section">
+      <div class="co-section-header">
+        <span class="section-icon">🎯</span>
+        <h2>Evaluate a Job</h2>
+      </div>
+      <div class="co-section-body">
+        <textarea
+          id="evalInput"
+          class="evaluate-input"
+          placeholder="Paste a job URL (e.g. https://boards.greenhouse.io/asos/jobs/...) or paste the full job description text here"
+        ></textarea>
+        <div class="evaluate-actions">
+          <button class="btn-primary" id="evalBtn" onclick="startEvaluation()">
+            Evaluate this job
+          </button>
+          <div class="eval-status" id="evalStatus">● Ready</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Latest Evaluation Result -->
+    <div class="co-section">
+      <div class="co-section-header">
+        <span class="section-icon">📊</span>
+        <h2>Latest Evaluation</h2>
+      </div>
+      <div class="co-section-body">
+        <div id="evalResult" class="eval-result">
+          <!-- populated by JS -->
+        </div>
+        <div id="evalPlaceholder" class="co-empty">
+          <span class="emoji">📋</span>
+          <p>No evaluation yet. Paste a job URL or description above and click <strong>Evaluate</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Applications Tracker -->
+    <div class="co-section">
+      <div class="co-section-header">
+        <span class="section-icon">📁</span>
+        <h2>Applications Tracker</h2>
+      </div>
+      <div class="co-section-body" id="trackerBody">
+        <div class="co-empty">
+          <span class="emoji">⏳</span><p>Loading tracker…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: Job Scanner -->
+    <div class="co-section">
+      <div class="co-section-header">
+        <span class="section-icon">🔭</span>
+        <h2>Job Scanner</h2>
+      </div>
+      <div class="co-section-body">
+        <div class="scan-meta">
+          <div class="scan-info" id="scanInfo">Loading scan data…</div>
+          <button class="btn-outline" id="scanBtn" onclick="startScan()">🔍 Scan Now</button>
+        </div>
+        <div class="scan-status" id="scanStatus" style="display:none"></div>
+        <div id="scanResults">
+          <div class="co-empty">
+            <span class="emoji">⏳</span><p>Loading…</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
-<div class="footer" id="footer"></div>
+<div class="footer" id="footer">
+  Automated every Monday · Powered by Claude AI
+</div>
 
 <script>
-  let allJobs = [];
+  // ── Config ────────────────────────────────────────────────────────────────
+  // Replace with your Cloudflare Worker URL after following cloudflare-worker/README.md
+  const WORKER_URL = "REPLACE_WITH_YOUR_WORKER_URL";
 
-  function scoreClass(s) {
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    localStorage.setItem('activeTab', name);
+  }
+
+  // Restore last active tab
+  (function() {
+    const saved = localStorage.getItem('activeTab');
+    if (saved) {
+      const btn = document.querySelector(`.tab-btn[onclick*="'${saved}'"]`);
+      if (btn) switchTab(saved, btn);
+    }
+  })();
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function scoreClass10(s) {
     if (s >= 8) return 'score-high';
     if (s >= 6) return 'score-mid';
     return 'score-low';
+  }
+
+  function scoreClass5(s) {
+    if (s >= 4.0) return 'score-high';
+    if (s >= 3.0) return 'score-mid';
+    return 'score-low';
+  }
+
+  function scoreDots(score, max) {
+    const filled = Math.round(score);
+    return Array.from({length: max}, (_, i) =>
+      `<span class="pip${i < filled ? ' filled' : ''}"></span>`
+    ).join('');
   }
 
   function formatDate(str) {
@@ -237,6 +767,14 @@
     return t.length > n ? t.slice(0, n).trimEnd() + '…' : t;
   }
 
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ══ JOB DIGEST ════════════════════════════════════════════════════════════
+
+  let allJobs = [];
+
   function renderCard(job) {
     const salary = job.salary && job.salary !== 'Not specified'
       ? `<span>💰 ${job.salary}</span>`
@@ -254,7 +792,7 @@
         <div class="card-top">
           <div class="card-meta">
             <span class="rank">#${job.rank}</span>
-            <span class="score-badge ${scoreClass(job.score)}">Score: ${job.score}/10</span>
+            <span class="score-badge ${scoreClass10(job.score)}">Score: ${job.score}/10</span>
             <span class="source-badge">${job.source}</span>
             ${posted ? `<span class="posted-date">${posted}</span>` : ''}
           </div>
@@ -273,7 +811,7 @@
       </div>`;
   }
 
-  function render() {
+  function renderDigest() {
     const minScore  = parseInt(document.getElementById('minScore').value, 10);
     const sortBy    = document.getElementById('sortSelect').value;
 
@@ -296,7 +834,7 @@
     grid.innerHTML = jobs.map(renderCard).join('');
   }
 
-  async function load() {
+  async function loadDigest() {
     try {
       const res  = await fetch('./jobs.json');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -307,26 +845,525 @@
         `Week of ${data.week_of} · ${allJobs.length} ${data.llm_powered ? 'AI-curated' : 'keyword-matched'} roles`;
       document.getElementById('metaLabel').textContent =
         `Last updated: ${new Date(data.generated_at).toLocaleString('en-GB')}`;
-      document.getElementById('footer').textContent =
-        `Source: LinkedIn via Apify · ${data.llm_powered ? 'Ranked by Claude AI (Haiku) · ' : ''}Generated every Monday morning`;
 
-      render();
+      renderDigest();
     } catch (err) {
       document.getElementById('jobGrid').innerHTML =
         `<div class="empty"><span class="emoji">⚠️</span>
-         <p>Could not load jobs.json — run the job bot first, or check the deploy.<br>
+         <p>Could not load jobs.json — run the job bot first.<br>
          <small style="color:#dc2626">${err.message}</small></p></div>`;
-      document.getElementById('weekLabel').textContent = 'Shreya\'s London Job Digest';
+      document.getElementById('weekLabel').textContent = "Shreya's Job Dashboard";
     }
   }
 
   document.getElementById('minScore').addEventListener('input', e => {
     document.getElementById('scoreVal').textContent = e.target.value;
-    render();
+    renderDigest();
   });
-  document.getElementById('sortSelect').addEventListener('change', render);
+  document.getElementById('sortSelect').addEventListener('change', renderDigest);
 
-  load();
+  // ══ CAREER OPS: EVALUATION ════════════════════════════════════════════════
+
+  let pollingTimer = null;
+  let pollingStart = null;
+  let lastEvalTimestamp = null;
+
+  async function startEvaluation() {
+    const input = document.getElementById('evalInput').value.trim();
+    if (!input) {
+      alert('Please paste a job URL or job description first.');
+      return;
+    }
+
+    if (WORKER_URL === 'REPLACE_WITH_YOUR_WORKER_URL') {
+      setEvalStatus('error', '⚠️ Worker URL not configured — see cloudflare-worker/README.md');
+      return;
+    }
+
+    const isUrl = input.startsWith('http://') || input.startsWith('https://');
+    const body = isUrl
+      ? { action: 'evaluate', jobUrl: input, jobText: '' }
+      : { action: 'evaluate', jobUrl: '', jobText: input };
+
+    setEvalStatus('processing', null);
+    document.getElementById('evalBtn').disabled = true;
+
+    try {
+      const resp = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) throw new Error(`Worker returned ${resp.status}`);
+    } catch (err) {
+      setEvalStatus('error', `Failed to trigger evaluation: ${err.message}`);
+      document.getElementById('evalBtn').disabled = false;
+      return;
+    }
+
+    // Record the current evaluation timestamp so we can detect when a new one arrives
+    try {
+      const current = await fetch('./latest_evaluation.json');
+      const data = await current.json();
+      lastEvalTimestamp = data.evaluated_at || null;
+    } catch { lastEvalTimestamp = null; }
+
+    pollingStart = Date.now();
+    setEvalStatus('processing', null);
+    pollingTimer = setInterval(pollForResult, 15_000);
+  }
+
+  function setEvalStatus(state, message) {
+    const el = document.getElementById('evalStatus');
+    el.className = 'eval-status ' + state;
+
+    if (state === 'processing') {
+      el.innerHTML = `<span class="spinner"></span> Evaluating… results appear in 2–4 minutes`;
+    } else if (state === 'done') {
+      el.innerHTML = `✅ ${message || 'Evaluation complete'}`;
+    } else if (state === 'error') {
+      el.innerHTML = `❌ ${message}`;
+    } else {
+      el.innerHTML = '● Ready';
+    }
+  }
+
+  async function pollForResult() {
+    const elapsed = (Date.now() - pollingStart) / 1000;
+
+    // Timeout after 6 minutes
+    if (elapsed > 360) {
+      clearInterval(pollingTimer);
+      setEvalStatus('error', 'Timed out waiting for result. Check GitHub Actions for errors.');
+      document.getElementById('evalBtn').disabled = false;
+      return;
+    }
+
+    try {
+      const resp = await fetch('./latest_evaluation.json?t=' + Date.now());
+      const data = await resp.json();
+
+      if (data.status === 'no_evaluation_yet') return;
+      if (data.evaluated_at === lastEvalTimestamp) return; // not yet updated
+
+      clearInterval(pollingTimer);
+      renderEvalResult(data);
+      setEvalStatus('done', `Evaluated: ${data.company} — ${data.job_title}`);
+      document.getElementById('evalBtn').disabled = false;
+
+      // Also refresh tracker
+      loadTracker();
+    } catch { /* ignore — will retry */ }
+  }
+
+  function renderEvalResult(data) {
+    const resultEl = document.getElementById('evalResult');
+    const placeholder = document.getElementById('evalPlaceholder');
+
+    const score = data.global_score || 0;
+    const scoreColor = score >= 4.0 ? 'score-high' : (score >= 3.0 ? 'score-mid' : 'score-low');
+    const legClass = {
+      'High Confidence': 'legitimacy-high',
+      'Proceed with Caution': 'legitimacy-caution',
+      'Suspicious': 'legitimacy-suspicious',
+    }[data.legitimacy] || 'legitimacy-caution';
+
+    const recClass = score >= 4.0 ? '' : (score >= 3.0 ? 'mid' : 'low');
+
+    const blocks = data.blocks || {};
+
+    const blockHTML = Object.entries(blocks).map(([key, block]) => {
+      const hasScore = block.score != null;
+      const content = renderBlockContent(key, block);
+      return `
+        <div class="block-item" id="block-${key}">
+          <button class="block-toggle" onclick="toggleBlock('${key}')">
+            <span style="font-weight:800;color:#6d28d9;min-width:18px">${key}</span>
+            <span class="block-label">${esc(block.title)}</span>
+            ${hasScore ? `<span class="block-score">${block.score}/5</span>` : ''}
+            <span class="chevron">▼</span>
+          </button>
+          <div class="block-content">${content}</div>
+        </div>`;
+    }).join('');
+
+    resultEl.innerHTML = `
+      <div class="eval-header">
+        <div class="eval-title-group">
+          <div class="eval-company">${esc(data.company)}</div>
+          <div class="eval-role">${esc(data.job_title)}</div>
+          <span class="eval-archetype">${esc(data.archetype)}</span>
+        </div>
+        <div class="eval-score-block">
+          <div class="eval-score-number ${scoreColor}">${score.toFixed(1)}</div>
+          <div class="eval-score-label">out of 5</div>
+          <div class="eval-score-dots score-pip">${scoreDots(score, 5)}</div>
+        </div>
+      </div>
+
+      <div class="eval-badges">
+        <span class="legitimacy-badge ${legClass}">${esc(data.legitimacy)}</span>
+      </div>
+
+      <div class="recommendation-banner ${recClass}">
+        ${esc(data.recommendation)}
+      </div>
+
+      <div class="block-accordion">${blockHTML}</div>
+
+      <div class="eval-actions">
+        ${data.job_url ? `<a class="btn-outline" href="${esc(data.job_url)}" target="_blank" rel="noopener">Open Job →</a>` : ''}
+      </div>`;
+
+    resultEl.classList.add('visible');
+    placeholder.style.display = 'none';
+
+    // Auto-open block A
+    toggleBlock('A');
+  }
+
+  function toggleBlock(key) {
+    const item = document.getElementById('block-' + key);
+    if (item) item.classList.toggle('open');
+  }
+
+  function renderBlockContent(key, block) {
+    if (key === 'A') {
+      const b = block;
+      return `
+        <p><strong>TL;DR:</strong> ${esc(b.tldr)}</p>
+        <p style="margin-top:8px"><strong>Seniority:</strong> ${esc(b.seniority)} &nbsp;|&nbsp;
+        <strong>Remote policy:</strong> ${esc(b.remote_policy)} &nbsp;|&nbsp;
+        <strong>Location:</strong> ${esc(b.location)}</p>
+        ${b.team_size ? `<p><strong>Team size:</strong> ${esc(b.team_size)}</p>` : ''}`;
+    }
+
+    if (key === 'B') {
+      const matches = (block.matches || []).map(m => `
+        <tr>
+          <td>${esc(m.requirement)}</td>
+          <td style="color:#166534">${esc(m.cv_evidence)}</td>
+        </tr>`).join('');
+
+      const gaps = (block.gaps || []).map(g => `
+        <div class="gap-item">
+          <span class="gap-tag ${g.severity === 'blocker' ? 'blocker' : 'nicetohave'}">
+            ${g.severity === 'blocker' ? 'Blocker' : 'Nice to have'}
+          </span>
+          <div>
+            <strong>${esc(g.gap)}</strong><br>
+            <span style="color:#6b7280">${esc(g.mitigation)}</span>
+          </div>
+        </div>`).join('');
+
+      return `
+        ${matches ? `
+          <table class="match-table">
+            <tr><th>JD Requirement</th><th>CV Evidence</th></tr>
+            ${matches}
+          </table>` : ''}
+        ${gaps ? `<div class="gap-list"><p style="font-weight:600;margin-bottom:6px">Gaps:</p>${gaps}</div>` : ''}`;
+    }
+
+    if (key === 'C') {
+      const angles = (block.key_angles || []).map(a => `<li>${esc(a)}</li>`).join('');
+      return `
+        <p>${esc(block.positioning)}</p>
+        ${angles ? `<ul style="margin-top:8px;padding-left:18px;line-height:2">${angles}</ul>` : ''}`;
+    }
+
+    if (key === 'D') {
+      return `
+        <p><strong>Salary in JD:</strong> ${esc(block.salary_in_jd || 'Not stated')}</p>
+        <p><strong>Market estimate:</strong> ${esc(block.market_estimate || '—')}</p>
+        <p><strong>vs your target (£55k–£90k):</strong> ${esc(block.vs_target || '—')}</p>
+        ${block.notes ? `<p style="margin-top:8px;color:#6b7280">${esc(block.notes)}</p>` : ''}`;
+    }
+
+    if (key === 'E') {
+      const changes = (block.cv_changes || []).map(c => `
+        <li><strong>${esc(c.section)}:</strong> ${esc(c.change)}</li>`).join('');
+      const kw = (block.keywords_to_inject || []).map(k =>
+        `<span style="background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:4px;font-size:12px;margin:2px;display:inline-block">${esc(k)}</span>`
+      ).join('');
+      return `
+        ${changes ? `<ul style="padding-left:18px;line-height:2">${changes}</ul>` : ''}
+        ${kw ? `<p style="margin-top:10px"><strong>Keywords to add:</strong></p><p style="margin-top:6px">${kw}</p>` : ''}`;
+    }
+
+    if (key === 'F') {
+      const stories = (block.stories || []).map((s, i) => `
+        <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #e5e7eb">
+          <p style="font-weight:700;margin-bottom:6px">${i+1}. ${esc(s.story_title)}</p>
+          <p><strong>JD requirement:</strong> ${esc(s.jd_requirement)}</p>
+          <p><strong>S:</strong> ${esc(s.situation)}</p>
+          <p><strong>T:</strong> ${esc(s.task)}</p>
+          <p><strong>A:</strong> ${esc(s.action)}</p>
+          <p><strong>R:</strong> ${esc(s.result)}</p>
+          <p><em style="color:#6b7280">${esc(s.reflection)}</em></p>
+        </div>`).join('');
+      return stories || '<p style="color:#9ca3af">No stories generated.</p>';
+    }
+
+    if (key === 'G') {
+      const signals = (block.signals || []).map(s => {
+        const dot = s.weight === 'positive' ? '🟢' : (s.weight === 'concerning' ? '🔴' : '🟡');
+        return `<li>${dot} ${esc(s.signal)}</li>`;
+      }).join('');
+      return `
+        <p><strong>Assessment:</strong> ${esc(block.tier)}</p>
+        ${signals ? `<ul style="margin-top:8px;padding-left:18px;line-height:2">${signals}</ul>` : ''}
+        ${block.notes ? `<p style="margin-top:8px;color:#6b7280">${esc(block.notes)}</p>` : ''}`;
+    }
+
+    // Fallback: render as text
+    return `<p>${esc(JSON.stringify(block))}</p>`;
+  }
+
+  // Load existing evaluation on page load
+  async function loadLatestEval() {
+    try {
+      const resp = await fetch('./latest_evaluation.json');
+      const data = await resp.json();
+      if (data.status === 'no_evaluation_yet') return;
+      lastEvalTimestamp = data.evaluated_at;
+      renderEvalResult(data);
+    } catch { /* no eval yet */ }
+  }
+
+  // ══ CAREER OPS: TRACKER ═══════════════════════════════════════════════════
+
+  async function loadTracker() {
+    try {
+      const resp = await fetch('./applications.json');
+      const data = await resp.json();
+      renderTracker(data);
+    } catch (err) {
+      document.getElementById('trackerBody').innerHTML =
+        `<div class="co-empty"><span class="emoji">⚠️</span><p>Could not load tracker: ${err.message}</p></div>`;
+    }
+  }
+
+  function renderTracker(data) {
+    const apps = data.applications || [];
+    const container = document.getElementById('trackerBody');
+
+    if (!apps.length) {
+      container.innerHTML = `<div class="co-empty">
+        <span class="emoji">📋</span>
+        <p>No applications tracked yet. Evaluate a job to add one automatically.</p>
+      </div>`;
+      return;
+    }
+
+    const statusByType = {};
+    let totalScore = 0;
+    apps.forEach(a => {
+      const s = a.status || 'Evaluated';
+      statusByType[s] = (statusByType[s] || 0) + 1;
+      if (a.score) totalScore += a.score;
+    });
+    const avgScore = apps.length ? (totalScore / apps.length).toFixed(1) : '—';
+
+    const statChips = [
+      {val: apps.length, lbl: 'Total'},
+      {val: statusByType['Applied'] || 0, lbl: 'Applied'},
+      {val: statusByType['Interview'] || 0, lbl: 'Interviews'},
+      {val: statusByType['Offer'] || 0, lbl: 'Offers'},
+      {val: avgScore, lbl: 'Avg Score'},
+    ].map(s => `
+      <div class="stat-chip">
+        <div class="stat-val">${s.val}</div>
+        <div class="stat-lbl">${s.lbl}</div>
+      </div>`).join('');
+
+    const statusClass = {
+      'Evaluated': 'status-evaluated',
+      'Applied': 'status-applied',
+      'Interview': 'status-interview',
+      'Offer': 'status-offer',
+      'Rejected': 'status-rejected',
+    };
+
+    const rows = apps.map(a => {
+      const sc = a.score || 0;
+      const cls = statusClass[a.status] || 'status-evaluated';
+      return `
+        <tr>
+          <td style="color:#9ca3af;font-size:12px">${a.date || ''}</td>
+          <td style="font-weight:600">${esc(a.company)}</td>
+          <td>${esc(a.role)}</td>
+          <td>
+            <div class="score-pip">${scoreDots(sc, 5)}</div>
+            <span style="font-size:11px;color:#6b7280">${sc}/5</span>
+          </td>
+          <td><span class="status-badge ${cls}">${esc(a.status)}</span></td>
+          <td>
+            ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener" style="color:#4f46e5;font-size:12px">View →</a>` : ''}
+          </td>
+        </tr>`;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="tracker-stats">${statChips}</div>
+      <div style="overflow-x:auto">
+        <table class="tracker-table">
+          <thead><tr>
+            <th>Date</th><th>Company</th><th>Role</th><th>Score</th><th>Status</th><th></th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p style="font-size:11px;color:#9ca3af;margin-top:10px">
+        Last updated: ${data.last_updated ? formatDate(data.last_updated) : 'never'}
+      </p>`;
+  }
+
+  // ══ CAREER OPS: SCANNER ═══════════════════════════════════════════════════
+
+  let scanPollingTimer = null;
+  let lastScanTimestamp = null;
+
+  async function startScan() {
+    if (WORKER_URL === 'REPLACE_WITH_YOUR_WORKER_URL') {
+      alert('Worker URL not configured yet — see cloudflare-worker/README.md');
+      return;
+    }
+
+    document.getElementById('scanBtn').disabled = true;
+
+    const statusEl = document.getElementById('scanStatus');
+    statusEl.style.display = 'flex';
+    statusEl.className = 'scan-status processing';
+    statusEl.innerHTML = `<span class="spinner"></span> Scanning 20 company portals… check back in 3–5 minutes`;
+
+    try {
+      const resp = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'scan' }),
+      });
+      if (!resp.ok) throw new Error(`Worker returned ${resp.status}`);
+    } catch (err) {
+      statusEl.className = 'scan-status';
+      statusEl.textContent = `❌ Failed to trigger scan: ${err.message}`;
+      document.getElementById('scanBtn').disabled = false;
+      return;
+    }
+
+    // Remember current scan timestamp to detect when new data arrives
+    try {
+      const cur = await fetch('./scan_results.json');
+      const d = await cur.json();
+      lastScanTimestamp = d.last_scan || null;
+    } catch { lastScanTimestamp = null; }
+
+    scanPollingTimer = setInterval(pollForScan, 20_000);
+  }
+
+  async function pollForScan() {
+    const elapsed = (Date.now() - (window._scanStart || Date.now())) / 1000;
+    if (elapsed > 600) {
+      clearInterval(scanPollingTimer);
+      const statusEl = document.getElementById('scanStatus');
+      statusEl.className = 'scan-status';
+      statusEl.textContent = '❌ Timed out. Check GitHub Actions for errors.';
+      document.getElementById('scanBtn').disabled = false;
+      return;
+    }
+
+    try {
+      const resp = await fetch('./scan_results.json?t=' + Date.now());
+      const data = await resp.json();
+      if (data.last_scan === lastScanTimestamp) return;
+
+      clearInterval(scanPollingTimer);
+      renderScanResults(data);
+      document.getElementById('scanStatus').style.display = 'none';
+      document.getElementById('scanBtn').disabled = false;
+    } catch { /* retry */ }
+  }
+
+  async function loadScanResults() {
+    try {
+      const resp = await fetch('./scan_results.json');
+      const data = await resp.json();
+      renderScanInfo(data);
+      renderScanResults(data);
+    } catch (err) {
+      document.getElementById('scanInfo').textContent = 'No scan data yet.';
+      document.getElementById('scanResults').innerHTML =
+        `<div class="co-empty"><span class="emoji">🔭</span>
+         <p>No scan results yet. Click <strong>Scan Now</strong> to discover new roles.</p></div>`;
+    }
+  }
+
+  function renderScanInfo(data) {
+    const el = document.getElementById('scanInfo');
+    if (data.status === 'no_scan_yet' || !data.last_scan) {
+      el.textContent = 'No scan run yet.';
+      return;
+    }
+    const d = new Date(data.last_scan);
+    const dateStr = d.toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    el.innerHTML = `<strong>Last scan:</strong> ${dateStr} &nbsp;·&nbsp; <strong>${data.new_this_run || 0}</strong> new roles found across ${data.companies_scanned || 0} companies`;
+  }
+
+  function renderScanResults(data) {
+    const jobs = data.jobs || [];
+    const container = document.getElementById('scanResults');
+
+    if (!jobs.length) {
+      container.innerHTML = `<div class="co-empty">
+        <span class="emoji">🔭</span>
+        <p>No new roles found in the last scan. All matching roles have been seen before.</p>
+      </div>`;
+      renderScanInfo(data);
+      return;
+    }
+
+    renderScanInfo(data);
+
+    const rows = jobs.map(j => `
+      <div class="job-row">
+        <div class="job-row-info">
+          <div class="job-row-title" title="${esc(j.title)}">${esc(j.title)}</div>
+          <div class="job-row-meta">
+            🏢 ${esc(j.company)}
+            ${j.location ? ` &nbsp;·&nbsp; 📍 ${esc(j.location)}` : ''}
+            &nbsp;·&nbsp; ${esc(j.source)}
+            &nbsp;·&nbsp; ${j.found_at || ''}
+          </div>
+        </div>
+        <div class="job-row-actions">
+          <button
+            class="btn-sm btn-sm-primary"
+            onclick="evaluateFromScanner(${JSON.stringify(esc(j.url)).replace(/&quot;/g, '"')})">
+            Evaluate →
+          </button>
+          ${j.url ? `<a class="btn-sm btn-sm-outline" href="${esc(j.url)}" target="_blank" rel="noopener">View</a>` : ''}
+        </div>
+      </div>`).join('');
+
+    container.innerHTML = `
+      <p style="font-size:12px;color:#9ca3af;margin-bottom:10px">${jobs.length} role${jobs.length !== 1 ? 's' : ''} found since last scan</p>
+      <div class="job-list">${rows}</div>`;
+  }
+
+  function evaluateFromScanner(url) {
+    document.getElementById('evalInput').value = url;
+    // Switch to top and scroll to evaluate section
+    const evalSection = document.querySelector('#tab-career-ops .co-section');
+    evalSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('evalInput').focus();
+  }
+
+  // ══ Init ══════════════════════════════════════════════════════════════════
+
+  loadDigest();
+  loadLatestEval();
+  loadTracker();
+  loadScanResults();
 </script>
 
 </body>
