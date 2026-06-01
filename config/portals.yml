@@ -15,8 +15,16 @@ title_filter:
     - e-commerce
     - ecommerce
     - content ops
-    - partner
     - data governance
+  # Roles must also contain one of these seniority indicators
+  seniority_include:
+    - specialist
+    - associate
+    - coordinator
+    - analyst
+    - executive
+    - advisor
+    - lead
   exclude:
     - junior
     - graduate
@@ -36,7 +44,6 @@ title_filter:
     - recruiter
     - talent
     - sales
-    - account manager
     - business development
     - logistics
     - supply chain
@@ -101,49 +108,49 @@ companies:
   # ── JSearch (companies whose ATS APIs are inaccessible) ────────
   - name: ASOS
     ats: jsearch
-    jsearch_query: "ASOS operations vendor catalogue London"
+    jsearch_query: "ASOS operations specialist coordinator analyst London"
 
   - name: eBay UK
     ats: jsearch
-    jsearch_query: "eBay UK operations marketplace platform London"
+    jsearch_query: "eBay UK operations specialist marketplace associate London"
 
   - name: Gymshark
     ats: jsearch
-    jsearch_query: "Gymshark operations ecommerce London"
+    jsearch_query: "Gymshark ecommerce operations specialist coordinator London"
 
   - name: Vinted
     ats: jsearch
-    jsearch_query: "Vinted operations marketplace platform London"
+    jsearch_query: "Vinted marketplace operations specialist associate London"
 
   - name: Farfetch
     ats: jsearch
-    jsearch_query: "Farfetch operations catalogue platform London"
+    jsearch_query: "Farfetch operations specialist catalogue coordinator London"
 
   - name: Ocado
     career_url: https://careers.ocado.com
     ats: jsearch
-    jsearch_query: "Ocado operations London"
+    jsearch_query: "Ocado operations specialist coordinator London"
 
   - name: THG (The Hut Group)
     ats: jsearch
-    jsearch_query: "THG The Hut Group operations ecommerce London"
+    jsearch_query: "THG The Hut Group ecommerce operations specialist London"
 
   - name: Not On The High Street
     ats: jsearch
-    jsearch_query: "Not On The High Street operations marketplace London"
+    jsearch_query: "Not On The High Street marketplace operations specialist London"
 
   - name: Marks & Spencer
     ats: jsearch
-    jsearch_query: "Marks Spencer ecommerce digital operations London"
+    jsearch_query: "Marks Spencer ecommerce digital operations specialist London"
 
   - name: John Lewis Partnership
     ats: jsearch
-    jsearch_query: "John Lewis Partnership operations ecommerce London"
+    jsearch_query: "John Lewis Partnership ecommerce operations specialist London"
 
   - name: Zalando
     ats: jsearch
-    jsearch_query: "Zalando operations marketplace platform London"
+    jsearch_query: "Zalando marketplace operations specialist associate London"
 
   - name: Boots UK
     ats: jsearch
-    jsearch_query: "Boots UK ecommerce digital operations London"
+    jsearch_query: "Boots UK ecommerce digital operations specialist London"

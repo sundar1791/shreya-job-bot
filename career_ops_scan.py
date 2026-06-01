@@ -69,11 +69,15 @@ def _kw_in(kw: str, text: str) -> bool:
 
 
 def title_matches(title: str, filters: dict) -> bool:
-    """Return True if job title passes include/exclude filters."""
+    """Return True if job title passes include/exclude/seniority filters."""
     t = title.lower()
     include = filters.get("include", [])
+    seniority_include = filters.get("seniority_include", [])
     exclude = filters.get("exclude", [])
     if not any(_kw_in(kw, t) for kw in include):
+        return False
+    # If seniority filter is configured, at least one must match
+    if seniority_include and not any(_kw_in(kw, t) for kw in seniority_include):
         return False
     if any(_kw_in(kw, t) for kw in exclude):
         return False

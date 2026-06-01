@@ -64,60 +64,60 @@ LLM_MODEL = "claude-sonnet-4-6"
 
 # JSearch — 10 queries, page 1 only (10 req/run × 4 = 40/month; free tier = 200/month).
 SEARCH_QUERIES = [
-    "ecommerce operations manager London",
-    "marketplace operations manager London",
-    "vendor operations manager London",
-    "seller operations manager London",
-    "platform operations manager London",
-    "catalogue manager ecommerce London",
-    "vendor onboarding manager London",
-    "customer success manager ecommerce London",
-    "data governance manager London",
-    "merchandising operations manager London",
+    "ecommerce operations specialist London",
+    "marketplace operations specialist London",
+    "vendor operations specialist London",
+    "seller operations specialist London",
+    "platform operations specialist London",
+    "catalogue specialist ecommerce London",
+    "vendor onboarding specialist London",
+    "marketplace associate operations London",
+    "data governance specialist London",
+    "merchandising specialist ecommerce London",
 ]
 
 # LinkedIn — 4 queries, limit=15 each (max 60 jobs/run × 4 = 240/month; free tier = 250 jobs + 25 req/month).
 # Uses advanced_title_filter PostgreSQL operators: & (AND), | (OR), ! (NOT),
-# single-quoted phrases (exact order), :* (prefix wildcard matches manager/management/managing).
+# single-quoted phrases (exact order), :* (prefix wildcard matches specialist/specialise).
 # Unquoted single words match anywhere in the title; avoid rare multi-word phrases as standalone filters.
 LINKEDIN_QUERIES = [
-    # Core ecommerce / marketplace / vendor operations roles
-    "(ecommerce | 'e-commerce' | marketplace | vendor | seller | partner) & (operations | onboarding | manag:*)",
-    # Catalogue / merchandising / data governance / data quality
-    "(catalogue | catalog | merchandising | taxonomy | 'data governance' | 'data quality') & (manag:* | lead | head)",
+    # Core ecommerce / marketplace / vendor operations roles — specialist & associate level
+    "(ecommerce | 'e-commerce' | marketplace | vendor | seller | partner) & (operations | onboarding) & (specialist | associate | coordinator | analyst | executive)",
+    # Catalogue / merchandising / data governance — specialist & associate level
+    "(catalogue | catalog | merchandising | taxonomy | 'data governance' | 'data quality') & (specialist | associate | coordinator | analyst | executive)",
     # Customer success scoped to ecommerce / marketplace platforms
-    "'customer success' & (ecommerce | 'e-commerce' | marketplace | platform | retail | digital)",
-    # Platform / digital / online retail operations management
-    "(platform | digital | 'online retail') & operations & (manag:* | lead | head)",
+    "'customer success' & (ecommerce | 'e-commerce' | marketplace | platform | retail | digital) & (specialist | associate | executive | advisor)",
+    # Platform / digital / online retail operations — specialist & associate level
+    "(platform | digital | 'online retail') & operations & (specialist | associate | coordinator | analyst | executive)",
 ]
 
 # Active Jobs DB — title_filter is Google-like natural language (no AND/OR syntax).
 ACTIVEJOBS_QUERIES = [
-    "ecommerce operations manager",
-    "marketplace operations manager",
-    "vendor operations manager",
-    "seller operations manager",
-    "platform operations manager",
-    "digital operations manager",
-    "catalogue operations manager",
-    "vendor onboarding manager",
-    "customer success manager ecommerce",
-    "customer success manager marketplace",
-    "data governance manager",
-    "merchandising operations manager",
-    "online retail operations manager",
+    "ecommerce operations specialist",
+    "marketplace operations specialist",
+    "vendor operations specialist",
+    "seller operations specialist",
+    "platform operations specialist",
+    "digital operations specialist",
+    "catalogue operations specialist",
+    "vendor onboarding specialist",
+    "customer success specialist ecommerce",
+    "marketplace associate operations",
+    "data governance specialist",
+    "merchandising specialist ecommerce",
+    "online retail operations specialist",
 ]
 
 # SerpAPI Google Jobs — fallback only, triggered when primary sources fail.
 # Free tier = 250 searches/month. Stops early once enough jobs are collected.
 SERPAPI_QUERIES = [
-    "ecommerce operations manager",
-    "marketplace operations manager",
-    "vendor operations manager",
-    "catalogue manager ecommerce",
-    "merchandising operations manager",
-    "customer success manager ecommerce",
-    "platform operations manager",
+    "ecommerce operations specialist",
+    "marketplace operations specialist",
+    "vendor operations specialist",
+    "catalogue specialist ecommerce",
+    "merchandising specialist ecommerce",
+    "customer success specialist ecommerce",
+    "platform operations specialist",
 ]
 
 
@@ -262,7 +262,7 @@ def fetch_linkedin_jobs(query: str) -> list[dict]:
         "advanced_title_filter": query,
         "location_filter":       "London OR United Kingdom",
         "type_filter":           "FULL_TIME",
-        "seniority_filter":      "Mid-Senior level,Associate,Director",
+        "seniority_filter":      "Associate,Mid-Senior level",
         "description_type":      "text",
         "exclude_ats_duplicate": "true",
         "offset":                0,
