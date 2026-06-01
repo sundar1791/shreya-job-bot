@@ -229,8 +229,11 @@ def scan_playwright(company: dict, title_filter: dict, location_filter: dict) ->
                     "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
                 )
             )
-            page.goto(career_url, wait_until="networkidle", timeout=30_000)
-            page.wait_for_timeout(2000)
+            try:
+                page.goto(career_url, wait_until="domcontentloaded", timeout=20_000)
+            except Exception:
+                pass  # timeout is ok — extract whatever rendered so far
+            page.wait_for_timeout(3000)
 
             # Extract all links that look like job postings
             links = page.evaluate("""
