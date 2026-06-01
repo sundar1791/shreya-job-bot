@@ -63,14 +63,19 @@ def save_history(history: dict):
     HISTORY_PATH.write_text(json.dumps(history, indent=2))
 
 
+def _kw_in(kw: str, text: str) -> bool:
+    """Whole-word keyword match (case-insensitive)."""
+    return bool(re.search(r"\b" + re.escape(kw.lower()) + r"\b", text))
+
+
 def title_matches(title: str, filters: dict) -> bool:
     """Return True if job title passes include/exclude filters."""
     t = title.lower()
     include = filters.get("include", [])
     exclude = filters.get("exclude", [])
-    if not any(kw.lower() in t for kw in include):
+    if not any(_kw_in(kw, t) for kw in include):
         return False
-    if any(kw.lower() in t for kw in exclude):
+    if any(_kw_in(kw, t) for kw in exclude):
         return False
     return True
 
@@ -247,9 +252,19 @@ def scan_playwright(company: dict, title_filter: dict, location_filter: dict) ->
             """)
             browser.close()
 
+            job_url_pattern = re.compile(
+                r"/(jobs?|role|opening|posting|position|vacancy|vacancies|careers?/\w)/",
+                re.IGNORECASE,
+            )
             for link in links:
                 title = link.get("text", "")
                 href = link.get("href", "")
+                # Only keep links that look like job posting URLs
+                if not href or not job_url_pattern.search(href):
+                    continue
+                # Skip non-HTTP links, fragments, and social media
+                if not href.startswith("http") or href.startswith("https://www.facebook"):
+                    continue
                 if title_matches(title, title_filter):
                     location = ""  # can't always detect from links alone
                     results.append(normalise_job(
