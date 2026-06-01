@@ -56,36 +56,32 @@ location_filter:
     - greater london
 
 companies:
-  # ── Greenhouse ATS ──────────────────────────────────────────────
-  - name: ASOS
-    career_url: https://jobs.asos.com
-    ats: greenhouse
-    greenhouse_id: asos
-
-  - name: Wayfair
-    career_url: https://www.wayfair.com/careers
-    ats: greenhouse
-    greenhouse_id: wayfair
-
-  - name: eBay UK
-    career_url: https://jobs.ebayinc.com
-    ats: greenhouse
-    greenhouse_id: ebay
-
+  # ── Greenhouse ATS (API + Playwright fallback) ───────────────────
   - name: Etsy
     career_url: https://careers.etsy.com
     ats: greenhouse
     greenhouse_id: etsy
 
-  - name: Depop
-    career_url: https://www.depop.com/careers
-    ats: greenhouse
-    greenhouse_id: depop
-
   - name: Moonpig
     career_url: https://www.moonpig.com/uk/careers
     ats: greenhouse
     greenhouse_id: moonpig
+
+  - name: Auto Trader UK
+    career_url: https://careers.autotrader.co.uk
+    ats: greenhouse
+    greenhouse_id: autotrader
+
+  # ── Playwright only (Greenhouse API disabled, page still accessible) ─
+  - name: Wayfair
+    career_url: https://www.wayfair.co.uk/careers
+    ats: greenhouse
+    greenhouse_id: wayfairtech
+
+  - name: Depop
+    career_url: https://www.depop.com/about/careers
+    ats: greenhouse
+    greenhouse_id: depop
 
   - name: Gousto
     career_url: https://www.gousto.co.uk/careers
@@ -97,65 +93,57 @@ companies:
     ats: greenhouse
     greenhouse_id: deliveroo
 
-  - name: Auto Trader UK
-    career_url: https://careers.autotrader.co.uk
-    ats: greenhouse
-    greenhouse_id: autotrader
-
   - name: Zoopla
-    career_url: https://www.zoopla.co.uk/about/careers
+    career_url: https://www.zoopla.co.uk/careers
     ats: greenhouse
     greenhouse_id: zoopla
 
-  # ── Ashby ATS ───────────────────────────────────────────────────
-  - name: Gymshark
-    career_url: https://jobs.ashbyhq.com/gymshark
-    ats: ashby
-    ashby_id: gymshark
+  # ── JSearch (companies whose ATS APIs are inaccessible) ────────
+  - name: ASOS
+    ats: jsearch
+    jsearch_query: "ASOS operations vendor catalogue London"
 
-  # ── Lever ATS ───────────────────────────────────────────────────
-  - name: Farfetch
-    career_url: https://www.farfetch.com/uk/careers
-    ats: lever
-    lever_id: farfetch
+  - name: eBay UK
+    ats: jsearch
+    jsearch_query: "eBay UK operations marketplace platform London"
+
+  - name: Gymshark
+    ats: jsearch
+    jsearch_query: "Gymshark operations ecommerce London"
 
   - name: Vinted
-    career_url: https://www.vinted.com/careers
-    ats: lever
-    lever_id: vinted
+    ats: jsearch
+    jsearch_query: "Vinted operations marketplace platform London"
 
-  # ── JSearch fallback (for companies without structured ATS APIs) ─
+  - name: Farfetch
+    ats: jsearch
+    jsearch_query: "Farfetch operations catalogue platform London"
+
   - name: Ocado
     career_url: https://careers.ocado.com
     ats: jsearch
     jsearch_query: "Ocado operations London"
 
   - name: THG (The Hut Group)
-    career_url: https://www.thg.com/careers
     ats: jsearch
-    jsearch_query: "The Hut Group THG operations ecommerce London"
+    jsearch_query: "THG The Hut Group operations ecommerce London"
 
   - name: Not On The High Street
-    career_url: https://www.notonthehighstreet.com/us/careers
     ats: jsearch
     jsearch_query: "Not On The High Street operations marketplace London"
 
   - name: Marks & Spencer
-    career_url: https://jobs.marksandspencer.com
     ats: jsearch
     jsearch_query: "Marks Spencer ecommerce digital operations London"
 
   - name: John Lewis Partnership
-    career_url: https://www.jlpjobs.com
     ats: jsearch
     jsearch_query: "John Lewis Partnership operations ecommerce London"
 
   - name: Zalando
-    career_url: https://jobs.zalando.com
     ats: jsearch
     jsearch_query: "Zalando operations marketplace platform London"
 
   - name: Boots UK
-    career_url: https://jobs.boots.com
     ats: jsearch
     jsearch_query: "Boots UK ecommerce digital operations London"
