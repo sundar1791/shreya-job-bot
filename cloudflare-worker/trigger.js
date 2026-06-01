@@ -79,6 +79,7 @@ async function dispatchWorkflow(pat, workflow, inputs) {
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
         "Content-Type": "application/json",
+        "User-Agent": "shreya-career-ops-worker",
       },
       body: JSON.stringify({ ref: BRANCH, inputs }),
     }

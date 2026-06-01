@@ -44,6 +44,7 @@ jobs:
         run: python -m playwright install chromium --with-deps
 
       - name: Run career ops portal scanner
+        continue-on-error: true
         env:
           JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
           SERPAPI_KEY:     ${{ secrets.SERPAPI_KEY }}
