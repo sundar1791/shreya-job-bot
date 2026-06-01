@@ -31,13 +31,9 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Install Playwright browsers
-        run: python -m playwright install chromium --with-deps
-
       - name: Run portal scanner
         env:
-          JSEARCH_API_KEY: ${{ secrets.JSEARCH_API_KEY }}
-          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python career_ops_scan.py
 
       - name: Commit results

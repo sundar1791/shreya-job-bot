@@ -1,156 +1,24 @@
-# Career Ops — London E-commerce Portal Configuration
-# Scanner targets for Shreya's job search (ops/vendor/catalogue/platform roles)
-
-title_filter:
-  include:
-    - operations
-    - vendor
-    - seller
-    - catalogue
-    - catalog
-    - platform
-    - marketplace
-    - onboarding
-    - merchandising
-    - e-commerce
-    - ecommerce
-    - content ops
-    - data governance
-  # Roles must also contain one of these seniority indicators
-  seniority_include:
-    - specialist
-    - associate
-    - coordinator
-    - analyst
-    - executive
-    - advisor
-    - lead
-  exclude:
-    - junior
-    - graduate
-    - intern
-    - apprentice
-    - engineer
-    - developer
-    - software
-    - data scientist
-    - data analyst
-    - machine learning
-    - finance
-    - accounting
-    - financial
-    - hr
-    - human resources
-    - recruiter
-    - talent
-    - sales
-    - business development
-    - logistics
-    - supply chain
-    - warehouse
-    - driver
-    - delivery
-    - demand planning
-    - forecasting
-
-location_filter:
-  include:
-    - london
-    - hybrid
-    - remote
-    - uk
-    - united kingdom
-    - greater london
-
+# Target companies for the portal scanner.
+# Claude uses this as a search hint but also searches broadly
+# across all London e-commerce / marketplace employers.
 companies:
-  # ── Greenhouse ATS (API + Playwright fallback) ───────────────────
-  - name: Etsy
-    career_url: https://careers.etsy.com
-    ats: greenhouse
-    greenhouse_id: etsy
-
-  - name: Moonpig
-    career_url: https://www.moonpig.com/uk/careers
-    ats: greenhouse
-    greenhouse_id: moonpig
-
-  - name: Auto Trader UK
-    career_url: https://careers.autotrader.co.uk
-    ats: greenhouse
-    greenhouse_id: autotrader
-
-  # ── Playwright only (Greenhouse API disabled, page still accessible) ─
-  - name: Wayfair
-    career_url: https://www.wayfair.co.uk/careers
-    ats: greenhouse
-    greenhouse_id: wayfairtech
-
-  - name: Depop
-    career_url: https://www.depop.com/about/careers
-    ats: greenhouse
-    greenhouse_id: depop
-
-  - name: Gousto
-    career_url: https://www.gousto.co.uk/careers
-    ats: greenhouse
-    greenhouse_id: gousto
-
-  - name: Deliveroo
-    career_url: https://careers.deliveroo.co.uk
-    ats: greenhouse
-    greenhouse_id: deliveroo
-
-  - name: Zoopla
-    career_url: https://www.zoopla.co.uk/careers
-    ats: greenhouse
-    greenhouse_id: zoopla
-
-  # ── JSearch (companies whose ATS APIs are inaccessible) ────────
-  - name: ASOS
-    ats: jsearch
-    jsearch_query: "ASOS operations specialist coordinator analyst London"
-
-  - name: eBay UK
-    ats: jsearch
-    jsearch_query: "eBay UK operations specialist marketplace associate London"
-
-  - name: Gymshark
-    ats: jsearch
-    jsearch_query: "Gymshark ecommerce operations specialist coordinator London"
-
-  - name: Vinted
-    ats: jsearch
-    jsearch_query: "Vinted marketplace operations specialist associate London"
-
-  - name: Farfetch
-    ats: jsearch
-    jsearch_query: "Farfetch operations specialist catalogue coordinator London"
-
-  - name: Ocado
-    career_url: https://careers.ocado.com
-    ats: jsearch
-    jsearch_query: "Ocado operations specialist coordinator London"
-
-  - name: THG (The Hut Group)
-    ats: jsearch
-    jsearch_query: "THG The Hut Group ecommerce operations specialist London"
-
-  - name: Not On The High Street
-    ats: jsearch
-    jsearch_query: "Not On The High Street marketplace operations specialist London"
-
-  - name: Marks & Spencer
-    ats: jsearch
-    jsearch_query: "Marks Spencer ecommerce digital operations specialist London"
-
-  - name: John Lewis Partnership
-    ats: jsearch
-    jsearch_query: "John Lewis Partnership ecommerce operations specialist London"
-
-  - name: Zalando
-    ats: jsearch
-    jsearch_query: "Zalando marketplace operations specialist associate London"
-
-  - name: Boots UK
-    ats: jsearch
-    jsearch_query: "Boots UK ecommerce digital operations specialist London"
+  - ASOS
+  - eBay UK
+  - Etsy
+  - Moonpig
+  - Auto Trader UK
+  - Wayfair
+  - Depop
+  - Gousto
+  - Deliveroo
+  - Zoopla
+  - Gymshark
+  - Vinted
+  - Farfetch
+  - Ocado
+  - THG (The Hut Group)
+  - Not On The High Street
+  - Marks & Spencer
+  - John Lewis Partnership
+  - Zalando
+  - Boots UK
