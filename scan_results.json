@@ -1,32 +1,7 @@
 {
-  "last_scan": "2026-06-01T21:14:30.066700+00:00",
+  "last_scan": "2026-06-01T21:22:24.226045+00:00",
   "companies_scanned": 20,
-  "total_found": 7,
-  "new_this_run": 3,
-  "jobs": [
-    {
-      "title": "Digital Promotions & Product Operations Assistant",
-      "url": "https://www.learn4good.com/jobs/london/uk/marketing_and_pr/5119364776/e/",
-      "company": "Boots UK",
-      "location": "London",
-      "source": "JSearch",
-      "found_at": "2026-06-01"
-    },
-    {
-      "title": "Commercial Partnerships Manager",
-      "url": "https://www.glassdoor.co.uk/job-listing/commercial-partnerships-manager-ocado-group-JV_IC2669774_KO0,31_KE32,43.htm?jl=1010133465917",
-      "company": "Ocado",
-      "location": "",
-      "source": "JSearch",
-      "found_at": "2026-06-01"
-    },
-    {
-      "title": "Assistant eCommerce Manager 9-12 months contract",
-      "url": "https://www.jobilize.com/amp/job/gb-south-east-england-slough-assistant-ecommerce-manager-9-12-months",
-      "company": "THG (The Hut Group)",
-      "location": "",
-      "source": "JSearch",
-      "found_at": "2026-06-01"
-    }
-  ]
+  "total_found": 6,
+  "new_this_run": 0,
+  "jobs": []
 }
