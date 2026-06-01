@@ -41,7 +41,8 @@ jobs:
           git config user.email "action@github.com"
           git config user.name "Career Ops Bot"
           git pull --rebase origin ${{ github.ref_name }} || true
-          git add output/scan_results.json data/scan_history.json
+          cp frontend/index.html output/index.html
+          git add output/ data/scan_history.json
           git diff --staged --quiet || git commit -m "chore: portal scan $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           git push origin ${{ github.ref_name }}
 
