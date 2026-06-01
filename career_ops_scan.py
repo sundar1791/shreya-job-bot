@@ -89,7 +89,7 @@ def normalise_job(title: str, url: str, company: str, location: str = "", source
         "title": title.strip(),
         "url": url.strip(),
         "company": company.strip(),
-        "location": location.strip(),
+        "location": (location or "").strip(),
         "source": source,
         "found_at": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
     }
