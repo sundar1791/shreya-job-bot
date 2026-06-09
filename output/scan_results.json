@@ -1,24 +1,32 @@
 {
-  "last_scan": "2026-06-08T12:24:24.646785+00:00",
+  "last_scan": "2026-06-09T03:32:44.480171+00:00",
   "companies_scanned": 20,
-  "total_found": 6,
-  "new_this_run": 2,
+  "total_found": 9,
+  "new_this_run": 3,
   "jobs": [
     {
-      "title": "London - The River Building HQ\n\nOperations Manager, \u2013 Planning and Performance, Rider Supply\nOperations",
-      "url": "https://careers.deliveroo.co.uk/role/operations-manager-planning-and-performance-rider-supply-6c4cca9ce237/",
+      "title": "St Ouen - Palouzi\u00e9 (Editions)\n\nEmploy\u00e9(e) Polyvalent(e) 12H- St Ouen\nOperations",
+      "url": "https://careers.deliveroo.co.uk/role/employee-polyvalente-12h-st-ouen-3a484175c2fc/",
       "company": "Deliveroo",
       "location": "",
       "source": "Playwright",
-      "found_at": "2026-06-08"
+      "found_at": "2026-06-09"
     },
     {
-      "title": "London - The River Building HQ\n\nPartner Marketing Manager, Grocery\nMarketing",
-      "url": "https://careers.deliveroo.co.uk/role/partner-marketing-manager-grocery-6ff68bac85bb/",
-      "company": "Deliveroo",
+      "title": "Depop Top Seller Program",
+      "url": "https://www.depop.com/sellers/top-seller-program/",
+      "company": "Depop",
       "location": "",
       "source": "Playwright",
-      "found_at": "2026-06-08"
+      "found_at": "2026-06-09"
+    },
+    {
+      "title": "Partner Success Manager, Smart Platform (OSP)",
+      "url": "https://www.jobijoba.co.uk/detail/92/e688aa945d1e2a8a42698e3f830faddd",
+      "company": "Ocado",
+      "location": "",
+      "source": "JSearch",
+      "found_at": "2026-06-09"
     }
   ]
 }
