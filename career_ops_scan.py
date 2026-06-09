@@ -131,7 +131,7 @@ posted in the last 4 weeks, then return the JSON array of all unique matching ro
     response = client.messages.create(
         model=MODEL,
         max_tokens=4096,
-        tools=[{"type": "web_search_20250305", "max_uses": MAX_WEB_SEARCHES}],
+        tools=[{"type": "web_search_20250305", "name": "web_search", "max_uses": MAX_WEB_SEARCHES}],
         system=system,
         messages=[{"role": "user", "content": user}],
     )
