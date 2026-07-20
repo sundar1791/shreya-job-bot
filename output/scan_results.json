@@ -1,67 +1,87 @@
 {
-  "last_scan": "2026-07-13T10:52:29.306432+00:00",
+  "last_scan": "2026-07-20T10:44:05.046621+00:00",
   "companies_scanned": 20,
-  "total_found": 6,
-  "new_this_run": 6,
+  "total_found": 8,
+  "new_this_run": 8,
   "jobs": [
     {
-      "title": "Ecommerce Operations Manager",
-      "company": "Four Marketing Limited",
-      "url": "https://uk.indeed.com/E-Commerce-Remote-jobs-in-London",
-      "location": "London (Remote-friendly)",
-      "date_posted": "2025-07-01",
-      "why_relevant": "Day-to-day operational performance ownership of ecommerce function across a multi-brand group \u2014 well matched to Shreya's operations lead experience managing large-scale catalogue and vendor platform performance.",
-      "found_at": "2026-07-13",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "E-commerce and Marketplace Executive",
-      "company": "Hulcan",
-      "url": "https://uk.indeed.com/cmp/Hulcan/jobs",
+      "title": "eCommerce Operations Coordinator",
+      "company": "Maybourne Hotel Group",
+      "url": "https://www.glassdoor.co.uk/Job/ecommerce-operations-coordinator-jobs-SRCH_KO0,32.htm",
       "location": "London",
-      "date_posted": "2025-07-09",
-      "why_relevant": "Directly covers ecommerce and marketplace content operations, maintaining clear standards across platform catalogue as it scales \u2014 closely matching Shreya's catalogue governance and platform operations experience.",
-      "found_at": "2026-07-13",
+      "date_posted": "2025-07-08",
+      "why_relevant": "Ecommerce operations coordinator covering trading events, campaigns, and digital ops with Jira and data analysis skills \u2014 mirrors Shreya's operational and tooling background.",
+      "found_at": "2026-07-20",
       "source": "Claude Web Search"
     },
     {
-      "title": "Ecommerce Business Analyst (Salesforce Commerce Cloud)",
-      "company": "LTM (via Jobsite)",
-      "url": "https://www.jobsite.co.uk/jobs/e-commerce/in-london",
-      "location": "London (Hybrid)",
-      "date_posted": "2025-07-01",
-      "why_relevant": "Requires translating business needs into requirements, managing catalogue/price books, and running UAT \u2014 a strong match for Shreya's platform migration, requirements definition, and UAT experience at Lowe's.",
-      "found_at": "2026-07-13",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "Online Marketplaces Coordinator",
-      "company": "Sweaty Betty (Wolverine Worldwide)",
-      "url": "https://uk.indeed.com/q-ecommerce-marketplace-specialist-l-london-jobs.html",
+      "title": "Seller Recruitment Lead (Tesco Marketplace)",
+      "company": "Tesco",
+      "url": "https://www.totaljobs.com/jobs/marketplace-manager/in-london",
       "location": "London",
       "date_posted": "2025-07-05",
-      "why_relevant": "Marketplace coordination role at a leading activewear brand covering product listings and platform operations across multiple online channels, directly aligned with Shreya's marketplace operations background.",
-      "found_at": "2026-07-13",
+      "why_relevant": "Tesco Marketplace seller recruitment and onboarding operations role focused on pipeline management, qualification criteria, and continuous process improvement \u2014 strongly aligned to Shreya's profile.",
+      "found_at": "2026-07-20",
       "source": "Claude Web Search"
     },
     {
-      "title": "Ecommerce Order Management Associate \u2013 Fanatics Collectibles",
-      "company": "TOPPS Europe Limited",
-      "url": "https://uk.indeed.com/q-ecommerce-marketplace-l-london-jobs.html",
-      "location": "London",
-      "date_posted": "2025-07-04",
-      "why_relevant": "Order management and fulfilment coordination across marketplace channels at a major sports collectibles platform \u2014 aligns with Shreya's ecommerce operations and process improvement track record.",
-      "found_at": "2026-07-13",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "TikTok Shop \u2013 Strategy & Operations Associate, Business Planning & Operations (UK)",
+      "title": "Seller Onboarding Operations Specialist (TikTok Shop - Merchant Quality)",
       "company": "TikTok",
-      "url": "https://uk.indeed.com/q-retail-operations-coordinator-l-london-jobs.html",
+      "url": "https://uk.indeed.com/m/jobs?q=Seller+Onboarding&l=London",
       "location": "London",
-      "date_posted": "2025-07-07",
-      "why_relevant": "Marketplace strategy and operations associate role at TikTok Shop covering merchant growth, operations metrics, and content scaling \u2014 directly aligned with Shreya's seller onboarding and platform operations expertise.",
-      "found_at": "2026-07-13",
+      "date_posted": "2025-07-01",
+      "why_relevant": "TikTok Shop merchant quality and onboarding operations role covering SOP setup, RCA, training, and onboarding journey improvement \u2014 a direct match to Shreya's 10K+ seller onboarding experience.",
+      "found_at": "2026-07-20",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Marketplace Operations and Strategy Analyst",
+      "company": "Uber",
+      "url": "https://www.uber.com/global/en/careers/list/140673/",
+      "location": "London",
+      "date_posted": "2025-06-20",
+      "why_relevant": "Directly matches marketplace operations + platform analytics scope, with cross-functional product/engineering collaboration closely mirroring Shreya's Lowe's experience.",
+      "found_at": "2026-07-20",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Operations Coordinator - E-commerce",
+      "company": "Undisclosed (via LinkedIn)",
+      "url": "https://uk.linkedin.com/jobs/e-commerce-entry-level-jobs-london-england-metropolitan-area",
+      "location": "London",
+      "date_posted": "2025-06-20",
+      "why_relevant": "E-commerce operations coordinator role in London matching Shreya's SLA management, process improvement, and vendor/catalogue operations competencies.",
+      "found_at": "2026-07-20",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Ecommerce & Product Data Executive",
+      "company": "Undisclosed Greek food/drink importer (via CWJobs)",
+      "url": "https://www.cwjobs.co.uk/jobs/e-commerce/in-london",
+      "location": "London (Bermondsey, hybrid)",
+      "date_posted": "2025-07-01",
+      "why_relevant": "Hands-on ownership of ecommerce systems and product data in a hybrid London role, matching Shreya's catalogue governance and data quality skills.",
+      "found_at": "2026-07-20",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Data Governance Analyst (Retail)",
+      "company": "Undisclosed UK Retailer (via Sanderson / Jobsite)",
+      "url": "https://www.jobsite.co.uk/jobs/data-governance-analyst",
+      "location": "London (hybrid)",
+      "date_posted": "2025-07-10",
+      "why_relevant": "Retail-sector data governance analyst contract role in London focused on data quality, governance frameworks, and process improvement \u2014 directly aligned to Shreya's 50% error-reduction and catalogue governance achievements.",
+      "found_at": "2026-07-20",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Marketplace Seller Onboarding Coordinator",
+      "company": "eBay UK",
+      "url": "https://www.cityjobs.com/jobs/onboarding/in-london",
+      "location": "London",
+      "date_posted": "2025-07-10",
+      "why_relevant": "eBay UK role facilitating seller onboarding including vetting seller applications and live-streaming onboarding, matching Shreya's end-to-end vendor activation expertise.",
+      "found_at": "2026-07-20",
       "source": "Claude Web Search"
     }
   ]
