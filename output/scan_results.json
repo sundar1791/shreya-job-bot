@@ -1,48 +1,7 @@
 {
-  "last_scan": "2026-07-27T11:12:34.559834+00:00",
+  "last_scan": "2026-08-03T11:14:54.888200+00:00",
   "companies_scanned": 20,
-  "total_found": 4,
-  "new_this_run": 4,
-  "jobs": [
-    {
-      "title": "Rider Onboarding Operations Specialist",
-      "company": "Deliveroo",
-      "url": "https://www.jobsite.co.uk/jobs/deliveroo/in-london?cmpId=1292728&cmp=1",
-      "location": "London (Hybrid, 3 days in office)",
-      "date_posted": "2025-07-15",
-      "why_relevant": "Deliveroo is a priority target company; this onboarding operations role involves managing complex onboarding workflows and compliance cases, closely matching Shreya's onboarding process redesign and SLA management skills.",
-      "found_at": "2026-07-27",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "E-commerce and Marketplace Executive",
-      "company": "MILE (via Indeed)",
-      "url": "https://uk.indeed.com/q-ecommerce-coordinator-l-london-jobs.html",
-      "location": "London",
-      "date_posted": "2025-07-01",
-      "why_relevant": "Role explicitly covers maintaining content standards across ecommerce and marketplace platforms as the platform scales \u2014 a strong fit for Shreya's catalogue governance and marketplace ops background.",
-      "found_at": "2026-07-27",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "Seller Onboarding Specialist",
-      "company": "Marketplacer",
-      "url": "https://startup.jobs/seller-onboarding-specialist-marketplacer-2-7849458",
-      "location": "Remote (UK)",
-      "date_posted": "2025-07-03",
-      "why_relevant": "End-to-end seller onboarding on a SaaS marketplace platform \u2014 directly mirrors Shreya's 10K+ partner onboarding, go-live workflows, listing quality governance, and operational process management at Lowe's.",
-      "found_at": "2026-07-27",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "Ecommerce Catalogue Operations Coordinator (Contract)",
-      "company": "Undisclosed International Retail Brand (via Sphere Digital Recruitment)",
-      "url": "https://www.spheredigitalrecruitment.com/job/contract---ecommerce-catalogue-coordinator---inside-ir35/",
-      "location": "London (Hybrid, Covent Garden)",
-      "date_posted": "2025-05-21",
-      "why_relevant": "Catalogue setup, categorisation, QA and accuracy governance for a new UK distribution centre directly matches Shreya's taxonomy, attribute governance, and catalogue management expertise at Lowe's.",
-      "found_at": "2026-07-27",
-      "source": "Claude Web Search"
-    }
-  ]
+  "total_found": 0,
+  "new_this_run": 0,
+  "jobs": []
 }
