@@ -1,7 +1,68 @@
 {
-  "last_scan": "2026-08-03T11:14:54.888200+00:00",
+  "last_scan": "2026-08-10T09:10:29.848973+00:00",
   "companies_scanned": 20,
-  "total_found": 0,
-  "new_this_run": 0,
-  "jobs": []
+  "total_found": 6,
+  "new_this_run": 6,
+  "jobs": [
+    {
+      "title": "eCommerce Operations Coordinator (Fanatics Collectibles)",
+      "company": "Fanatics Collectibles",
+      "url": "https://uk.jooble.org/jobs-operations-coordinator/London",
+      "location": "London (Hybrid)",
+      "date_posted": "2026-07-20",
+      "why_relevant": "E-commerce operations coordinator managing and optimising day-to-day ecommerce operations at a high-growth collectibles marketplace \u2014 matches Shreya's end-to-end marketplace operations background.",
+      "found_at": "2026-08-10",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Interim Senior Operations Specialist - Business Development",
+      "company": "Farfetch",
+      "url": "https://builtin.com/job/interim-senior-operations-specialist-business-development/7308614",
+      "location": "London (Hybrid)",
+      "date_posted": "2026-07-25",
+      "why_relevant": "Hands-on platform operations role at a luxury e-commerce marketplace managing boutique/brand partner onboarding, contracts, and operational processes \u2014 directly maps to Shreya's vendor/seller onboarding and platform ops background.",
+      "found_at": "2026-08-10",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Associate Operations Manager - Marketplace",
+      "company": "Undisclosed (via Built In London)",
+      "url": "https://builtinlondon.uk/jobs/operations/search/operations-manager",
+      "location": "London",
+      "date_posted": "2026-07-30",
+      "why_relevant": "IC-level associate operations manager role focused on analysing marketplace inefficiencies and optimising operations \u2014 closely aligned with Shreya's marketplace operations and process improvement background.",
+      "found_at": "2026-08-10",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Data Governance Enablement Analyst",
+      "company": "Undisclosed (via CWJobs)",
+      "url": "https://www.cwjobs.co.uk/jobs/data-governance/in-london",
+      "location": "London (Hybrid)",
+      "date_posted": "2026-07-15",
+      "why_relevant": "Six-month contract role leading a data literacy and governance enablement programme in London, aligning closely with Shreya's data quality, SOP design, and process improvement experience.",
+      "found_at": "2026-08-10",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "eCommerce Operations & Carrier Integration Analyst",
+      "company": "Undisclosed International Fashion Retailer (via The Retail Appointment)",
+      "url": "https://www.retailappointment.co.uk/job/ecommerce-operations-carrier-integration-analyst-19146",
+      "location": "London",
+      "date_posted": "2026-05-21",
+      "why_relevant": "Specialist e-commerce operations analyst role at an international fashion retailer in London, covering platform performance management and cross-functional operations \u2014 relevant to Shreya's platform operations and UAT experience.",
+      "found_at": "2026-08-10",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "E-commerce Operations Coordinator - Luxury Brand",
+      "company": "Undisclosed Luxury Brand (via LinkedIn)",
+      "url": "https://uk.linkedin.com/jobs/e-commerce-jobs-london",
+      "location": "London",
+      "date_posted": "2026-08-04",
+      "why_relevant": "Posted 6 days ago and actively hiring, this luxury brand e-commerce operations coordinator role in London matches Shreya's catalogue, content quality, and platform operations expertise.",
+      "found_at": "2026-08-10",
+      "source": "Claude Web Search"
+    }
+  ]
 }
