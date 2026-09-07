@@ -1,28 +1,7 @@
 {
-  "last_scan": "2026-08-31T15:43:27.128812+00:00",
+  "last_scan": "2026-09-07T13:50:37.662832+00:00",
   "companies_scanned": 20,
-  "total_found": 2,
-  "new_this_run": 2,
-  "jobs": [
-    {
-      "title": "Analyst (Multiple Roles \u2014 Operations & Analytics)",
-      "company": "Ocado Logistics",
-      "url": "https://jobfound.org/job/ocado-logistics-is-hiring-for-analyst-hatfield-hertfordshire-hybrid-uk-19-august-2026",
-      "location": "Hatfield (Hybrid)",
-      "date_posted": "2026-08-19",
-      "why_relevant": "Ocado Logistics is hiring across several analyst roles focused on operational performance, network planning and partner experience \u2014 relevant to Shreya's platform operations and data analysis skills within a large-scale e-commerce environment.",
-      "found_at": "2026-08-31",
-      "source": "Claude Web Search"
-    },
-    {
-      "title": "Ecommerce Coordinator",
-      "company": "Orlebar Brown",
-      "url": "https://www.glassdoor.co.uk/Job/london-part-time-ecommerce-jobs-SRCH_IL.0,6_IC2671300_KO7,26.htm",
-      "location": "London",
-      "date_posted": "2026-08-01",
-      "why_relevant": "Execution-focused role managing marketplace product uploads, product categorisation, content accuracy and onsite journey quality across the Orlebar Brown website and marketplace channels \u2014 closely aligned to Shreya's catalogue operations and platform operations background.",
-      "found_at": "2026-08-31",
-      "source": "Claude Web Search"
-    }
-  ]
+  "total_found": 0,
+  "new_this_run": 0,
+  "jobs": []
 }
