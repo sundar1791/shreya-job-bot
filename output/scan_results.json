@@ -1,7 +1,28 @@
 {
-  "last_scan": "2026-09-07T13:50:37.662832+00:00",
+  "last_scan": "2026-09-14T14:36:52.224104+00:00",
   "companies_scanned": 20,
-  "total_found": 0,
-  "new_this_run": 0,
-  "jobs": []
+  "total_found": 2,
+  "new_this_run": 2,
+  "jobs": [
+    {
+      "title": "Marketplace Associate Analyst",
+      "company": "Luzern eCommerce Group",
+      "url": "https://join.com/companies/tambo/16146025-marketplace-associate-analyst",
+      "location": "London",
+      "date_posted": "2026-05-12",
+      "why_relevant": "Analyst-level marketplace operations role at a London-based ecommerce agency, directly aligned with Shreya's platform operations and marketplace management background.",
+      "found_at": "2026-09-14",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Marketplace Executive",
+      "company": "OMNES",
+      "url": "https://www.businessoffashion.com/careers/job/320622/marketplace-executive/",
+      "location": "London",
+      "date_posted": "2026-09-01",
+      "why_relevant": "End-to-end operational onboarding of marketplace partners (ASOS, Zalando, About You) from signed agreement through to go-live, with SLA management and product data coordination \u2014 a near-exact match for Shreya's vendor onboarding and catalogue operations skill set.",
+      "found_at": "2026-09-14",
+      "source": "Claude Web Search"
+    }
+  ]
 }
