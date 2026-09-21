@@ -1,27 +1,77 @@
 {
-  "last_scan": "2026-09-14T14:36:52.224104+00:00",
+  "last_scan": "2026-09-21T14:44:05.655376+00:00",
   "companies_scanned": 20,
-  "total_found": 2,
-  "new_this_run": 2,
+  "total_found": 7,
+  "new_this_run": 7,
   "jobs": [
     {
-      "title": "Marketplace Associate Analyst",
-      "company": "Luzern eCommerce Group",
-      "url": "https://join.com/companies/tambo/16146025-marketplace-associate-analyst",
-      "location": "London",
-      "date_posted": "2026-05-12",
-      "why_relevant": "Analyst-level marketplace operations role at a London-based ecommerce agency, directly aligned with Shreya's platform operations and marketplace management background.",
-      "found_at": "2026-09-14",
+      "title": "Online Coordinator (Contract)",
+      "company": "Beauty brand via Salt Recruitment",
+      "url": "https://welovesalt.com/jobs/ecommerce-coordinator-713879",
+      "location": "London (Hybrid)",
+      "date_posted": "2026-09-01",
+      "why_relevant": "Hands-on platform operations and product content coordination role covering a major Shopify re-platform and peak trading period, well-suited to the candidate's UAT, migration, and digital transformation experience.",
+      "found_at": "2026-09-21",
       "source": "Claude Web Search"
     },
     {
-      "title": "Marketplace Executive",
-      "company": "OMNES",
-      "url": "https://www.businessoffashion.com/careers/job/320622/marketplace-executive/",
+      "title": "Digital Platform Coordinator (Temporary)",
+      "company": "Frieze",
+      "url": "https://www.artsjobs.org.uk/jobs/82917",
+      "location": "London",
+      "date_posted": "2026-07-30",
+      "why_relevant": "Covers gallery/exhibitor onboarding, platform content quality monitoring, operational coordination across digital teams, and launch readiness\u2014closely mirroring the candidate's vendor onboarding and content governance experience.",
+      "found_at": "2026-09-21",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "eCommerce Production & Campaign Coordinator (6-month FTC)",
+      "company": "Moonpig Group (Buyagift / Red Letter Days)",
+      "url": "https://uk.indeed.com/q-moonpig-l-london-jobs.html",
+      "location": "London (Hybrid)",
+      "date_posted": "2026-09-01",
+      "why_relevant": "Directly matches candidate's catalogue ops and ecommerce production background; involves supplier onboarding, SKU creation, quality checks, and trading coordination on a gift-experience marketplace platform.",
+      "found_at": "2026-09-21",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Senior eCommerce Operations Specialist",
+      "company": "Nespresso (Nestl\u00e9)",
+      "url": "https://ecommercejobs.uk/job/senior-ecommerce-operations-specialist-london/",
+      "location": "London / Gatwick (Hybrid)",
+      "date_posted": "2026-01-31",
+      "why_relevant": "Covers day-to-day digital channel content operations, eMerchandising governance, campaign execution, and UAT\u2014directly aligned to the candidate's platform operations and catalogue management skills.",
+      "found_at": "2026-09-21",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Seller Onboarding Lead (Marketplace Seller Acquisition Lead)",
+      "company": "Sainsbury's",
+      "url": "https://bebee.com/gb/jobs/seller-onboarding-lead-sainsburys-city-of-london--fj-2079351863",
+      "location": "London",
+      "date_posted": "2026-03-27",
+      "why_relevant": "Focused on attracting, evaluating, and onboarding third-party marketplace sellers with friction-free activation\u2014core to the candidate's 10+ years of end-to-end seller onboarding and partner acquisition experience.",
+      "found_at": "2026-09-21",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Ecommerce Operations Coordinator",
+      "company": "Self-Portrait",
+      "url": "https://www.businessoffashion.com/careers/job/310536/ecommerce-operations-coordinator/",
+      "location": "London (Greater)",
+      "date_posted": "2026-06-01",
+      "why_relevant": "End-to-end ecommerce operations ownership covering stock availability, order flows, cross-functional coordination with logistics and buying\u2014matches the candidate's process redesign and platform operations profile.",
+      "found_at": "2026-09-21",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Ecommerce Anti-fraud Investigations and Operations Analyst",
+      "company": "TikTok Shop",
+      "url": "https://uk.indeed.com/q-marketplace-l-london-jobs.html",
       "location": "London",
       "date_posted": "2026-09-01",
-      "why_relevant": "End-to-end operational onboarding of marketplace partners (ASOS, Zalando, About You) from signed agreement through to go-live, with SLA management and product data coordination \u2014 a near-exact match for Shreya's vendor onboarding and catalogue operations skill set.",
-      "found_at": "2026-09-14",
+      "why_relevant": "Marketplace operations analyst role within a high-scale ecommerce platform, involving policy, quality systems, and data analytics\u2014relevant to the candidate's data governance and marketplace operations expertise.",
+      "found_at": "2026-09-21",
       "source": "Claude Web Search"
     }
   ]
