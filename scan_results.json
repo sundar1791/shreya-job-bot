@@ -1,27 +1,107 @@
 {
-  "last_scan": "2026-09-28T16:18:56.321840+00:00",
+  "last_scan": "2026-10-05T16:39:48.314574+00:00",
   "companies_scanned": 20,
-  "total_found": 2,
-  "new_this_run": 2,
+  "total_found": 10,
+  "new_this_run": 10,
   "jobs": [
     {
-      "title": "Ecommerce Trade Coordinator \u2013 A-COLD-WALL",
-      "company": "A-COLD-WALL",
-      "url": "https://uk.linkedin.com/jobs/ecommerce-specialist-jobs",
-      "location": "London",
-      "date_posted": "2026-09-21",
-      "why_relevant": "Early-applicant opportunity at a London fashion brand for an ecommerce trade coordinator, leveraging Shreya's trading, catalogue accuracy, and operational process skills.",
-      "found_at": "2026-09-28",
+      "title": "Ecommerce Operations Coordinator",
+      "company": "Boden",
+      "url": "https://uk.jooble.org/jobs-operations-coordinator-hybrid/London",
+      "location": "London (Hybrid \u2013 North Acton)",
+      "date_posted": "2026-09-05",
+      "why_relevant": "Hybrid London ecommerce operations coordinator at an established online fashion retailer, closely matching Shreya's SLA management, process redesign and vendor/catalogue operations skills.",
+      "found_at": "2026-10-05",
       "source": "Claude Web Search"
     },
     {
-      "title": "Global Data Quality & Governance Analyst",
-      "company": "Undisclosed Global Organisation (via Totaljobs)",
-      "url": "https://www.totaljobs.com/jobs/data-governance-analyst/in-london",
-      "location": "Hemel Hempstead / Hybrid",
-      "date_posted": "2026-09-15",
-      "why_relevant": "Operationalises a Global Data Governance Framework with focus on data integrity and quality controls \u2014 directly maps to Shreya's data governance, error reduction, and catalogue accuracy work at Lowe's.",
-      "found_at": "2026-09-28",
+      "title": "CRM & Data Operations Analyst",
+      "company": "Find",
+      "url": "https://jobs.lever.co/find/56088591-07ee-42bd-8b11-01f230ccb3fd",
+      "location": "London (Remote)",
+      "date_posted": "2026-07-14",
+      "why_relevant": "Remote-eligible London data operations analyst role focused on process automation and operational efficiency, matching Shreya's data governance, tooling and continuous improvement background.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Product Operations Analyst",
+      "company": "Flagright",
+      "url": "https://jobs.ashbyhq.com/flagright.com/e06aef39-fdaf-44d5-8283-dbe3d8fb5c69",
+      "location": "London",
+      "date_posted": "2026-06-11",
+      "why_relevant": "London-based product operations analyst role at a fintech SaaS platform requiring cross-functional collaboration, requirements gathering, UAT and process improvement \u2014 all core Shreya strengths.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Ecommerce Executive",
+      "company": "Gymshark",
+      "url": "https://builtin.com/company/gymshark/jobs",
+      "location": "Solihull (In-Office)",
+      "date_posted": "2026-08-28",
+      "why_relevant": "Gymshark (target company) is hiring an ecommerce executive to manage content execution, product launches and onsite merchandising \u2014 closely matching Shreya's catalogue and platform operations skill set, though located outside London.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "E-commerce Operations Coordinator",
+      "company": "Herm\u00e8s",
+      "url": "https://uk.linkedin.com/jobs/view/e-commerce-operations-coordinator-hermes",
+      "location": "London",
+      "date_posted": "2026-10-05",
+      "why_relevant": "Premium luxury brand actively hiring an e-commerce operations coordinator in London today, matching Shreya's end-to-end platform operations and catalogue management experience.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Omnichannel Operations Coordinator",
+      "company": "Jimmy Choo",
+      "url": "https://uk.linkedin.com/jobs/view/omnichannel-operations-coordinator-jimmy-choo",
+      "location": "London",
+      "date_posted": "2026-09-29",
+      "why_relevant": "Luxury retail omnichannel operations coordinator role posted within the last week in London, aligned with Shreya's platform and catalogue operations experience in a retail-tech context.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "E-Commerce Content & Operations Executive",
+      "company": "John Lewis Partnership",
+      "url": "https://builtin.com/job/e-commerce-content-operations-executive/7969452",
+      "location": "London (Hybrid)",
+      "date_posted": "2026-10-05",
+      "why_relevant": "Target company John Lewis Partnership is actively recruiting an e-commerce content and operations executive on a hybrid FTC basis, directly aligned with Shreya's catalogue, content controls and platform operations background.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "E-commerce Operations Coordinator \u2013 Luxury Fashion Brand",
+      "company": "MODE SEARCH Ltd.",
+      "url": "https://uk.linkedin.com/jobs/view/ecommerce-operations-coordinator-luxury-fashion-brand",
+      "location": "London",
+      "date_posted": "2026-09-24",
+      "why_relevant": "Active London-based e-commerce operations coordinator role in fashion, matching Shreya's catalogue management, platform operations and process-improvement expertise.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Analyst \u2013 Data Quality & Governance",
+      "company": "Marks and Spencer",
+      "url": "https://uk.linkedin.com/jobs/view/analyst-data-quality-governance-marks-and-spencer",
+      "location": "London",
+      "date_posted": "2026-10-03",
+      "why_relevant": "M&S (a target company) is actively hiring a data quality and governance analyst in London, directly matching Shreya's data governance and error-reduction track record.",
+      "found_at": "2026-10-05",
+      "source": "Claude Web Search"
+    },
+    {
+      "title": "Marketplace Executive",
+      "company": "OMNES",
+      "url": "https://www.businessoffashion.com/careers/job/marketplace-executive-omnes/",
+      "location": "London",
+      "date_posted": "2026-09-08",
+      "why_relevant": "Office-based London role managing UK and international marketplace operations across ASOS, Zalando and other partners \u2014 directly aligned with Shreya's multi-channel marketplace operations background.",
+      "found_at": "2026-10-05",
       "source": "Claude Web Search"
     }
   ]
